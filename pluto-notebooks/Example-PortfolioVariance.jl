@@ -181,7 +181,7 @@ md"""
 
 # ╔═╡ 85087d4d-6e49-46f4-a115-280304d75a1a
 md"""
-###### b) standard deviation array of the return
+###### b) standard deviation array of the returns $\sigma_{i}$
 """
 
 # ╔═╡ d430a0c0-42a8-407c-9cf9-687781152592
@@ -190,7 +190,7 @@ md"""
 
 # ╔═╡ 863b5e2c-84cd-45fd-b776-23f584958862
 md"""
-###### c) correlation array $\rho$
+###### c) return correlation array $\rho$
 """
 
 # ╔═╡ 0880e290-8a05-4efc-b605-27154ec086ea
@@ -278,6 +278,11 @@ end
 # ╔═╡ a82c8656-483e-44b8-a3af-0653c07a7bbb
 md"""
 ### What did we learn in this example?
+
+In this example, we learned:
+* A high reward is often associated with high risk. 
+
+
 """
 
 # ╔═╡ 9f4fe50e-1d21-4498-99f0-1fe149be8ff9
