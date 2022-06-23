@@ -27,14 +27,14 @@ end
 
 # ╔═╡ 76cdf8bd-41ec-44f6-ae7b-2dd1e1d61912
 md"""
-## The Return and Variance of Binary Portfolios
+## The Return and Variance of a Binary Portfolio
 Jeffrey D. Varner, Smith School of Chemical and Biomolecular Engineering, Cornell University, Ithaca, NY 14850
 """
 
 # ╔═╡ 68801e9b-1e17-4b85-b39c-352d709bc0c6
 md"""
 ### Introduction
-Denote the set of assets in a portfolio as $\mathcal{P}$; where $\vert\mathcal{P}\vert$ denotes the number of assets in the portfolio set. Then, the expected return (reward) of the portfolio $\mathcal{P}$ is defined as:
+Let's pull down some pricing data and compute the risk and return of a binary portfolio. Denote the set of assets in a portfolio as $\mathcal{P}$; where $\vert\mathcal{P}\vert$ denotes the number of assets in the portfolio set. Then, the expected return (reward) of the portfolio $\mathcal{P}$ is defined as:
 
 $$\mathbb{E}\left(r_{\mathcal{P}}\right) = \sum_{i\in\mathcal{P}}\omega_{i}\mathbb{E}\left(r_{i}\right)$$
 
@@ -47,7 +47,11 @@ $$\sigma_{\mathcal{P}}^2 =
 \text{cov}\left(r_{i},r_{j}\right)$$
 
 where $\sigma_{\star}$ denote the standard deviation of the return of asset $\star$, and 
-$\rho_{ij}$ denotes the correlation between assets $i$ and $j$.
+$\rho_{ij}$ denotes the correlation between assets $i$ and $j$. 
+
+__Summary:__
+* The return of a portfolio $\mathcal{P}$ is the weighted sum of the expected returns of assets in the portfolio, where the weights are the asset allocations $w_{\star}$
+* The risk of a portfolio $\mathcal{P}$ is the standard derivation of the portfolio returns weighted by the asset allocations $w_{\star}$.
 """
 
 # ╔═╡ 8ebe17b6-a45d-4e05-9324-7fa13a871a51
@@ -125,22 +129,17 @@ md"""
 # ╔═╡ ff8e88eb-2602-42a2-bde9-ffa78ee49cef
 md"""
 ##### Load the close price dataset:
-Daily close prices for $\vert\mathcal{P}\vert$ (semi) random tickers for 06/20/2020 to 06/20/2022
+We downloaded the daily close prices for $\vert\mathcal{P}\vert$ = 25 (semi) random tickers for two years from 06/20/2020 to 06/20/2022. We saved this data into a [JLD2 binary](https://github.com/JuliaIO/JLD2.jl) file, which we load here using the [load](https://juliaio.github.io/JLD2.jl/dev/#save-and-load-functions) command:
 """
 
-# ╔═╡ 9b5fd848-f020-4082-935c-ab04fc78fc70
-begin
-	
-	# load the data from disk -
-	data_dictionary = load(joinpath(_PATH_TO_DIR,"Portfolio-Data-06-20-22.jld2"))["dd"]
-
-	# show -
-	nothing
-end
+# ╔═╡ 9f14e157-8edc-44c1-81dd-20d6ff9d841e
+# load the data from disk -
+data_dictionary = load(joinpath(_PATH_TO_DIR, "Portfolio-Data-06-20-22.jld2"))["dd"];
 
 # ╔═╡ 52eaa09b-c529-4585-9d73-494253b1fb81
 md"""
-##### Compute the array of Return values:
+##### Compute the Array of Return values
+We compute the return for each asset using the `compute_return_array` function and store the result in the $R$ array.
 """
 
 # ╔═╡ 7e6fc914-bd13-47c2-9278-78ea51f646ff
@@ -168,24 +167,49 @@ end
 
 # ╔═╡ d8b76728-79ae-4a5a-b0d8-bf3f813ee9e1
 md"""
-##### Compute the mean, standard deviation and correlation of the Return
+##### Compute the mean, standard deviation, and correlation of the return for an individual asset 
+"""
+
+# ╔═╡ cb589d09-f7a5-4a70-83bd-edf3970a5279
+md"""
+###### a) mean return array $\mu_{r}$
 """
 
 # ╔═╡ e814c126-3c01-461b-8093-b5364865390e
-# mean return -
-μᵣ = vec(mean(R, dims=1));
+# mean return for each asset -
+μᵣ = vec(mean(R, dims=1)); # dimension: |𝒫| x 1
+
+# ╔═╡ 85087d4d-6e49-46f4-a115-280304d75a1a
+md"""
+###### b) standard deviation array of the return
+"""
 
 # ╔═╡ d430a0c0-42a8-407c-9cf9-687781152592
 # compute the standard deviation array -
 σ = vec(std(R, dims=1)); # compute the standard deviation of the return over the last m days
 
+# ╔═╡ 863b5e2c-84cd-45fd-b776-23f584958862
+md"""
+###### c) correlation array $\rho$
+"""
+
 # ╔═╡ 0880e290-8a05-4efc-b605-27154ec086ea
 # compute the correlation array -
 ρ = cor(R);
 
+# ╔═╡ 1689e094-4640-44a5-ad65-3effee89204e
+md"""
+###### d) fraction $w$ of `AAPL` in the portfolio 
+"""
+
 # ╔═╡ c3aaab46-b932-428a-bbcd-31d5cf69c864
 # what fraction of AAPL?
 w = 0.60; 
+
+# ╔═╡ bd887d79-2205-4d61-b5a4-1a3bcb4144c3
+md"""
+##### Compute the portfolio variance and return 
+"""
 
 # ╔═╡ 9d0d18be-dcfa-489a-ad78-ff132740ec6d
 begin
@@ -209,6 +233,16 @@ begin
 	end
 end
 
+# ╔═╡ 613b93ff-5ffa-4149-8df0-9271bf84ea7b
+md"""
+#### Is there a relationship between risk and reward?
+"""
+
+# ╔═╡ 9d731aed-3d3f-4d41-8114-a7d206b30afd
+md"""
+__Table 1__: Description goes here
+"""
+
 # ╔═╡ 8f36a68d-79ed-4b27-9fe8-e7ef9b411e6c
 with_terminal() do
 
@@ -227,9 +261,9 @@ with_terminal() do
 	pretty_table(data_table; header = header_array)
 end
 
-# ╔═╡ 613b93ff-5ffa-4149-8df0-9271bf84ea7b
+# ╔═╡ 8a91fe7b-4f31-4ec3-b023-15e7edb6b17a
 md"""
-#### Is there a relationship between risk and reward?
+__Figure 1__: Figure description goes here
 """
 
 # ╔═╡ 19cfb6f0-2b11-4372-9bf5-90bdfd4c65ab
@@ -241,9 +275,9 @@ begin
 	ylabel!("Scaled Portfolio Reward (scaled to AAPL)", fontsize=18)
 end
 
-# ╔═╡ d54d6407-37ab-4ba5-9ca4-8b5f6135b490
+# ╔═╡ a82c8656-483e-44b8-a3af-0653c07a7bbb
 md"""
-### Summary
+### What did we learn in this example?
 """
 
 # ╔═╡ 9f4fe50e-1d21-4498-99f0-1fe149be8ff9
@@ -1341,20 +1375,27 @@ version = "0.9.1+5"
 # ╠═e9377fd3-bb32-4cb1-9157-a4225af49d42
 # ╟─252f4d58-1689-44aa-87ad-aa2afe4e7cd6
 # ╟─ff8e88eb-2602-42a2-bde9-ffa78ee49cef
-# ╠═9b5fd848-f020-4082-935c-ab04fc78fc70
+# ╠═9f14e157-8edc-44c1-81dd-20d6ff9d841e
 # ╟─52eaa09b-c529-4585-9d73-494253b1fb81
 # ╠═7e6fc914-bd13-47c2-9278-78ea51f646ff
 # ╟─d8b76728-79ae-4a5a-b0d8-bf3f813ee9e1
+# ╟─cb589d09-f7a5-4a70-83bd-edf3970a5279
 # ╠═e814c126-3c01-461b-8093-b5364865390e
+# ╟─85087d4d-6e49-46f4-a115-280304d75a1a
 # ╠═d430a0c0-42a8-407c-9cf9-687781152592
+# ╟─863b5e2c-84cd-45fd-b776-23f584958862
 # ╠═0880e290-8a05-4efc-b605-27154ec086ea
+# ╟─1689e094-4640-44a5-ad65-3effee89204e
 # ╠═c3aaab46-b932-428a-bbcd-31d5cf69c864
+# ╟─bd887d79-2205-4d61-b5a4-1a3bcb4144c3
 # ╠═9d0d18be-dcfa-489a-ad78-ff132740ec6d
 # ╠═2ea355e5-cfe6-4c74-bb9d-836088ee0b94
-# ╟─8f36a68d-79ed-4b27-9fe8-e7ef9b411e6c
 # ╟─613b93ff-5ffa-4149-8df0-9271bf84ea7b
-# ╠═19cfb6f0-2b11-4372-9bf5-90bdfd4c65ab
-# ╟─d54d6407-37ab-4ba5-9ca4-8b5f6135b490
+# ╟─9d731aed-3d3f-4d41-8114-a7d206b30afd
+# ╟─8f36a68d-79ed-4b27-9fe8-e7ef9b411e6c
+# ╟─8a91fe7b-4f31-4ec3-b023-15e7edb6b17a
+# ╟─19cfb6f0-2b11-4372-9bf5-90bdfd4c65ab
+# ╠═a82c8656-483e-44b8-a3af-0653c07a7bbb
 # ╟─9f4fe50e-1d21-4498-99f0-1fe149be8ff9
 # ╟─6751637c-9131-46df-8dce-ef96ebb1fc49
 # ╟─3d578fb2-f09a-11ec-332c-d37a6f84f863
