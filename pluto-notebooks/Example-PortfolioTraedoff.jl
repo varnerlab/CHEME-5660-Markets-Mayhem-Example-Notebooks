@@ -103,7 +103,7 @@ We generate a random collection of possible portfolio weight vectors such that e
 
 $$\sum_{p\in\mathcal{P}}w_{p} = 1$$
 
-However, when building a portfolio allocation, we force one index $\star$ to be a [short position](https://www.investopedia.com/terms/s/short.asp). In a short position, an investor borrows and then immediately sells shares of `XYZ`. Then at some later time, the investor repurchases the shares of `XYZ` and returns them. Thus, we have a _negative_ amount of shares,  meaning $w_{\star}<0$. 
+using the `generate_asset_allocation` function. In addition, when building a portfolio allocation, we force one index $\star$ to be a [short position](https://www.investopedia.com/terms/s/short.asp). In a short position, an investor borrows and then immediately sells shares of `XYZ`. Then at some later time, the investor repurchases the shares of `XYZ` and returns them. Thus, we have a _negative_ amount of shares,  meaning $w_{\star}<0$. 
 """
 
 # ╔═╡ 76acab7c-cc16-435f-87e3-2fc20b92abff
@@ -122,6 +122,14 @@ begin
 		end
 	end
 end
+
+# ╔═╡ 507b1174-d60f-486a-b0d9-5ec6a3b4c441
+md"""
+##### Check: Does the summation constraint hold?
+"""
+
+# ╔═╡ 78cfef26-a9d2-4bd7-8d4e-edb64d74d6b9
+idx = findall(x-> x != 1.0, round.(sum(W,dims=1), digits=4))
 
 # ╔═╡ 29a12715-7ab4-4ad7-b346-d80a90acc1da
 begin
@@ -1267,6 +1275,8 @@ version = "0.9.1+5"
 # ╠═7c15540e-a961-4ab0-befe-424ddce299ca
 # ╟─5a30d34e-b006-42ed-bb6d-716aafed4829
 # ╠═76acab7c-cc16-435f-87e3-2fc20b92abff
+# ╟─507b1174-d60f-486a-b0d9-5ec6a3b4c441
+# ╠═78cfef26-a9d2-4bd7-8d4e-edb64d74d6b9
 # ╠═29a12715-7ab4-4ad7-b346-d80a90acc1da
 # ╠═62f8a9fa-79a3-4e48-816a-f13c8edf0509
 # ╠═bc0c3aca-6425-4c47-9ba5-039c81f1ba21
