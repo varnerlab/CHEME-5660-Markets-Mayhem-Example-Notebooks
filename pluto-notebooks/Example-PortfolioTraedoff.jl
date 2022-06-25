@@ -89,7 +89,9 @@ md"""
 # ╔═╡ e3438820-cdcf-4dfd-8af9-6dc06dd9f0c5
 md"""
 #### Load the close price dataset:
-We downloaded the daily close prices for $\vert\mathcal{P}\vert$ = 25 (semi) random tickers for two years from 06/20/2020 to 06/20/2022. We saved this data into a [JLD2 binary](https://github.com/JuliaIO/JLD2.jl) file, which we load here using the [load](https://juliaio.github.io/JLD2.jl/dev/#save-and-load-functions) command:
+We downloaded the daily close prices for $\vert\mathcal{P}\vert$ = 25 (semi) random tickers for two years from 06/20/2020 to 06/20/2022. We saved this data into a [JLD2 binary](https://github.com/JuliaIO/JLD2.jl) file, which we load here using the [load](https://juliaio.github.io/JLD2.jl/dev/#save-and-load-functions) command. 
+
+The data is loaded into a [Dictionary](https://docs.julialang.org/en/v1/base/collections/#Dictionaries) where the keys are the ticker strings and the values are [DataFrames](https://dataframes.juliadata.org/stable/) holding the pricing data:
 """
 
 # ╔═╡ 7c15540e-a961-4ab0-befe-424ddce299ca
@@ -129,7 +131,7 @@ md"""
 """
 
 # ╔═╡ 78cfef26-a9d2-4bd7-8d4e-edb64d74d6b9
-idx = findall(x-> x != 1.0, round.(sum(W,dims=1), digits=4))
+idx = findall(x-> x != 1.0, round.(sum(W,dims=1), digits=4)) # hmmm. why do we have to round? Can anyone guess??
 
 # ╔═╡ 29a12715-7ab4-4ad7-b346-d80a90acc1da
 begin
@@ -177,7 +179,7 @@ begin
 
 		# package -
 		RR[i,1] = risk
-		RR[i,2] = reward
+		RR[i,2] = 100*reward
 	end
 	
 end
@@ -186,7 +188,7 @@ end
 begin
 	scatter(RR[:,1],RR[:,2])
 	xlabel!("Portfolio Risk σₚ",fontsize=18)
-	ylabel!("Expected Return E(rₚ)", fontsize=18)
+	ylabel!("Expected Percentage Daily Return E(rₚ)", fontsize=18)
 end
 
 # ╔═╡ 5697e6b0-f3f2-11ec-0cf8-c97933c1cf31
