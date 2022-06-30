@@ -191,6 +191,16 @@ begin
 	ylabel!("Expected Percentage Daily Return E(rₚ)", fontsize=18)
 end
 
+# ╔═╡ e063dee0-6aa1-4152-9c93-60b4e27b7f6e
+md"""
+#### Disclaimer and Risks
+This content is offered solely for training and  informational purposes. No offer or solicitation to buy or sell securities or derivative products, or any investment or trading advice or strategy,  is made, given, or endorsed by the teaching team. 
+
+Trading involves risk. Carefully review your financial situation before investing in securities, futures contracts, options, or commodity interests. Past performance, whether actual or indicated by historical tests of strategies, is no guarantee of future performance or success. Trading is generally inappropriate for someone with limited resources, investment or trading experience, or a low-risk tolerance.  Only risk capital that is not required for living expenses.
+
+You are fully responsible for any investment or trading decisions you make. Such decisions should be based solely on your evaluation of your financial circumstances, investment or trading objectives, risk tolerance, and liquidity needs.
+"""
+
 # ╔═╡ 5697e6b0-f3f2-11ec-0cf8-c97933c1cf31
 html"""
 <style>
@@ -1284,6 +1294,7 @@ version = "0.9.1+5"
 # ╠═bc0c3aca-6425-4c47-9ba5-039c81f1ba21
 # ╠═be920f8a-fd68-4427-8a7f-759ba9bee4d6
 # ╠═3d41080e-2736-4591-9ec3-ac9771b99277
+# ╟─e063dee0-6aa1-4152-9c93-60b4e27b7f6e
 # ╟─5697e6b0-f3f2-11ec-0cf8-c97933c1cf31
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
