@@ -35,7 +35,10 @@ where $\bar{r}=i/2$ and $C=\bar{r}\cdot{V_{P}}$.
 # ╔═╡ bf2e9e7b-721e-4557-a7b6-68a7227ec2f8
 md"""
 #### Problem statement
-Compute the price $V_{B}$ for a T = 30-year bond with a 6% coupon rate and a par value of $1,000. 
+Compute the price of a bond $V_{B}$ with a T = 30-year term, a par value of $1,000 and:
+* a) The interest rate is __equal__ to the coupon rate $\bar{r} = \bar{c}$; values: $\bar{c}=8\%$, $\bar{r}=10\%$ and $V_{P} = 1000~USD$
+* b) The interest rate is __larger__ than the coupon rate  $\bar{r}>\bar{c}$; values: $\bar{c}=8\%$, $\bar{r}=10\%$ and $V_{P} = 1000~USD$
+* c) The interest rate is __smaller__ than the coupon rate $\bar{r}<\bar{c}$; values $\bar{c}=8\%$, $\bar{r}=6\%$ and $V_{P} = 1000~USD$
 """
 
 # ╔═╡ 23534a97-739c-4bf3-bc47-bf1addbd1159
@@ -74,11 +77,37 @@ end
 
 # ╔═╡ 3ac51003-89a6-4f1a-a3e4-e76c103e0c7a
 md"""
-### Results and Discussion
+### Results
+"""
+
+# ╔═╡ a1263a74-e9b3-4f09-932a-0d1df2851e9d
+md"""
+a) The interest rate is __equal__ to the coupon rate $\bar{r} = \bar{c}$; values: $\bar{c}=8\%$, $\bar{r}=10\%$ and $V_{P} = 1000~USD$
 """
 
 # ╔═╡ ca28f875-1c41-4436-8867-926e5fb487e0
-begin
+with_terminal() do
+
+	# setup -
+	Vₚ = 1000.0 # par value is 1K
+	r̄ = 0.08 	# annual market interest rate
+	c̄ = 0.08 	# annual coupon rate
+	T = 30 		# term is T years
+
+	# compute -
+	Vᵦ = price(Vₚ,T, c̄, r̄);
+
+	# display -
+	println("Vᵦ = $(Vᵦ) USD where (r̄,c̄) = ($(r̄),$(c̄))")
+end
+
+# ╔═╡ 09696d0e-c239-4ccd-a7d5-e2659a5f644b
+md"""
+b) The interest rate is __larger__ than the coupon rate  $\bar{r}>\bar{c}$; values: $\bar{c}=8\%$, $\bar{r}=10\%$ and $V_{P} = 1000~USD$
+"""
+
+# ╔═╡ 190ae7a7-ef9e-4b99-a2ba-a3ebe38926b7
+with_terminal() do
 
 	# setup -
 	Vₚ = 1000.0 # par value is 1K
@@ -87,12 +116,47 @@ begin
 	T = 30 		# term is T years
 
 	# compute -
-	Vᵦ = price(Vₚ,T, c̄, r̄)
+	Vᵦ = price(Vₚ,T, c̄, r̄);
+
+	# display -
+	println("Vᵦ = $(Vᵦ) USD where (r̄,c̄) = ($(r̄),$(c̄))")
 end
+
+# ╔═╡ 89fd6eee-93f8-46c9-a79b-94030e3e5bd1
+md"""
+c) The interest rate is __smaller__ than the coupon rate $\bar{r}<\bar{c}$; values $\bar{c}=8\%$, $\bar{r}=6\%$ and $V_{P} = 1000~USD$
+"""
+
+# ╔═╡ 2d290d97-ef97-49b1-8086-59e85a62c56c
+with_terminal() do
+
+	# setup -
+	Vₚ = 1000.0 # par value is 1K
+	r̄ = 0.06 	# annual market interest rate
+	c̄ = 0.08 	# annual coupon rate
+	T = 30 		# term is T years
+
+	# compute -
+	Vᵦ = price(Vₚ,T, c̄, r̄);
+
+	# display -
+	println("Vᵦ = $(Vᵦ) USD where (r̄,c̄) = ($(r̄),$(c̄))")
+end
+
+# ╔═╡ 2319d84f-a2c0-48bd-ac8c-5a7950891e6f
+md"""
+### Discussion
+When the market interest rate $\bar{r}$ is not equal to the bond's coupon rate, the bond will not sell at par value. As the market interest rate increases, the present value of the bondholder's future payments is lower. Thus, bond prices fall as market interest rates rise. 
+
+This example illustrates a crucial mistake often made during bond valuation; the bond's coupon rate, which determines the interest paid to the bondholder, is not the same as the market interest rate (the rate used to discount future cash flows). 
+
+A bond's coupon rate is specified when the bond is sold, while the market interest rate changes in response to economic conditions. Thus, investors discount any fixed payments at a higher discount rate, which implies that present values and bond prices fall.
+"""
 
 # ╔═╡ 74ac8a8f-3bd4-468e-b162-baf1b4ce95fb
 md"""
 ### Resources
+* This example was inspired by Example 14.2 of BKM: Zvi Bodie, Alex Kane, and Alan J Marcus. Investments. The McGraw-Hill/Irwin series in finance, insurance, and real estate. McGraw-Hill/Irwin, New York, 9th ed edition, 2011. ISBN 9780073530703 (alk. paper).
 """
 
 # ╔═╡ b9701713-e6e5-4bfc-9e3f-4979a8562f07
@@ -211,10 +275,10 @@ uuid = "5ae59095-9a9b-59fe-a467-6f913c188581"
 version = "0.12.8"
 
 [[deps.Compat]]
-deps = ["Dates", "LinearAlgebra", "UUIDs"]
-git-tree-sha1 = "924cdca592bc16f14d2f7006754a621735280b74"
+deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
+git-tree-sha1 = "9be8be1d8a6f44b96482c8af52238ea7987da3e3"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "4.1.0"
+version = "3.45.0"
 
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -248,6 +312,10 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 [[deps.DelimitedFiles]]
 deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+
+[[deps.Distributed]]
+deps = ["Random", "Serialization", "Sockets"]
+uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[deps.DocStringExtensions]]
 deps = ["LibGit2"]
@@ -588,9 +656,9 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 
 [[deps.NaNMath]]
-git-tree-sha1 = "737a5957f387b17e74d4ad2f440eb330b39a62c5"
+git-tree-sha1 = "b086b7ea07f8e38cf122f5016af580881ac914fe"
 uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
-version = "1.0.0"
+version = "0.3.7"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
@@ -741,6 +809,10 @@ version = "1.1.0"
 
 [[deps.Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+
+[[deps.SharedArrays]]
+deps = ["Distributed", "Mmap", "Random", "Serialization"]
+uuid = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
 
 [[deps.Showoff]]
 deps = ["Dates", "Grisu"]
@@ -1074,14 +1146,20 @@ version = "0.9.1+5"
 """
 
 # ╔═╡ Cell order:
-# ╠═fd8385ad-a682-452c-910f-8d62f362ce53
+# ╟─fd8385ad-a682-452c-910f-8d62f362ce53
 # ╟─37327ccf-ef68-48f8-8fae-c9f92313e3e5
 # ╟─bf2e9e7b-721e-4557-a7b6-68a7227ec2f8
 # ╟─23534a97-739c-4bf3-bc47-bf1addbd1159
 # ╠═b146e0e3-4244-4c9a-be02-4f999f21264b
 # ╠═84ca1d25-8a6c-4064-9a4a-d6ec8a1bc208
 # ╟─3ac51003-89a6-4f1a-a3e4-e76c103e0c7a
-# ╠═ca28f875-1c41-4436-8867-926e5fb487e0
+# ╟─a1263a74-e9b3-4f09-932a-0d1df2851e9d
+# ╟─ca28f875-1c41-4436-8867-926e5fb487e0
+# ╟─09696d0e-c239-4ccd-a7d5-e2659a5f644b
+# ╟─190ae7a7-ef9e-4b99-a2ba-a3ebe38926b7
+# ╟─89fd6eee-93f8-46c9-a79b-94030e3e5bd1
+# ╟─2d290d97-ef97-49b1-8086-59e85a62c56c
+# ╟─2319d84f-a2c0-48bd-ac8c-5a7950891e6f
 # ╟─74ac8a8f-3bd4-468e-b162-baf1b4ce95fb
 # ╟─b9701713-e6e5-4bfc-9e3f-4979a8562f07
 # ╟─bef29468-fedc-11ec-0ce5-7599f65bdea5
