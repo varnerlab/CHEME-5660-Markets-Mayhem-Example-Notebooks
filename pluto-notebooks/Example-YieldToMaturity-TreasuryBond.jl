@@ -34,7 +34,7 @@ where $\bar{r}$ is set by the market at time of purchase of the bond, and $C=\le
 # ╔═╡ f3c06392-ba32-40fb-b964-62c5b3ce4dd2
 md"""
 ### Problem Statement
-Suppose an 8% coupon, T = 30-year bond is selling at \$1,476.76. What average return rate would be earned by an investor purchasing the bond at this price? 
+Suppose an 8% coupon, T = 30-year bond is selling for \$1,476.76. What average return rate would be earned by an investor that purchased the bond at this price? 
 """
 
 # ╔═╡ 3bbd8f67-8331-49fd-bb81-43a3f62a817d
