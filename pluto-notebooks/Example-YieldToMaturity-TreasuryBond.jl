@@ -20,11 +20,21 @@ Jeffrey D. Varner, Smith School of Chemical and Biomolecular Engineering, Cornel
 # ╔═╡ d1f05cea-1c66-4118-bda5-99ad24a969a7
 md"""
 ### Introduction
+
+U.S. Treasury bonds often do not sell for their par value i.e., the market interest rate $\bar{r}\neq\bar{c}$. Investors purchasing U.S. Treasury bonds are typically not given the market interest rate $\bar{r}$. Instead, 
+investors must calculate $\bar{r}$ from the bond price, maturity date, and coupon payments. The yield to maturity (YTM) is the interest rate that makes the present value of a bond’s payments equal to its price sale price $\hat{V}_{B}$.
+
+Let the term of a bond be T-years with semi-annual coupon payments (2T coupon payments over the duration of the bond), with an annual coupon rate of $\bar{c}$. The yield to maturity (YTM) value is the interest rate $\bar{r}$ that makes $V_{B}=\hat{V}_{B}$: Further, suppose the bond was purchased for $\hat{V}_{B}$ (which may be different than the _fair price_).
+
+$$\hat{V}_{B} - \frac{V_{P}}{\left(1+\bar{r}\right)^{2T}}-\sum_{t=1}^{2T}\frac{C}{\left(1+\bar{r}\right)^{t}} = 0$$
+
+where $\bar{r}$ is set by the market at time of purchase of the bond, and $C=\left(\bar{c}/2\right)\cdot{V_{P}}$
 """
 
 # ╔═╡ f3c06392-ba32-40fb-b964-62c5b3ce4dd2
 md"""
 ### Problem Statement
+Suppose an 8% coupon, T = 30-year bond is selling at \$1,476.76. What average return rate would be earned by an investor purchasing the bond at this price? 
 """
 
 # ╔═╡ 3bbd8f67-8331-49fd-bb81-43a3f62a817d
@@ -84,7 +94,7 @@ md"""
 
 # ╔═╡ bdd414e3-84dc-4bd4-adf4-48fe95c26c7e
 md"""
-a) __Compute__: YTM for a bond with a par value of Vₚ = 1000 USD, a sale price of V̂ᵦ = 1276.76 USD, a term of T = 30 years, and an annual coupon rate of c̄ = 8%.
+a) __Compute__: YTM for a bond with a par value of Vₚ = \$1000 USD, a sale price of V̂ᵦ = \$1476.76 USD, a term of T = 30 years, and an annual coupon rate of c̄ = 8%.
 """
 
 # ╔═╡ fe109196-afa0-4ab8-9440-6aaf609d1915
@@ -99,7 +109,7 @@ begin
 
 	# Data from BKM Example 14.4
 	Vₚ = 1000.0 	# par of the bond
-	V̂ᵦ = 1276.76 	# price of the bond
+	V̂ᵦ = 1476.76 	# price of the bond
 	T = 30 			# term of the bond
 	c̄ = 0.08 		# annual coupon rate
 	
@@ -638,7 +648,7 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 
 # ╔═╡ Cell order:
 # ╟─588d24c2-0ee5-4a37-9a7d-2561773032cc
-# ╠═d1f05cea-1c66-4118-bda5-99ad24a969a7
+# ╟─d1f05cea-1c66-4118-bda5-99ad24a969a7
 # ╟─f3c06392-ba32-40fb-b964-62c5b3ce4dd2
 # ╟─3bbd8f67-8331-49fd-bb81-43a3f62a817d
 # ╠═92e73c4c-21d9-4dec-b2ef-7986415d1c0b
