@@ -30,7 +30,7 @@ Smith School of Chemical and Biomolecular Engineering, Cornell University, Ithac
 
 # ╔═╡ c622c0a2-1af0-4ffd-bd5e-1771b19f1cb8
 md"""
-This notebook recreates Fig. 16.1 from BKM 10th Edition:
+This notebook recreates something similar to Fig. 16.1 from BKM 10th Edition:
 
 * [Zvi Bodie, Alex Kane, and Alan J Marcus. Investments. The McGraw-Hill/Irwin series in finance, insurance, and real estate. McGraw-Hill/Irwin, New York, 10th ed edition, 2014. ISBN-10: 9780077861674](https://www.amazon.com/Investments-10th-Zvi-Bodie/dp/0077861671/ref=pd_lpo_2?pd_rd_i=0077861671&psc=1)
 """
@@ -59,6 +59,41 @@ function price(Vₚ::Float64, T::Int64, c̄::Float64, r̄::Float64)
 
 	# compute the Vᵦ -
 	return (final_payout+sum(coupon_payments))
+end;
+
+# ╔═╡ 61d8e5ac-8115-4a01-ab55-7505fb82de00
+mutable struct Bond
+	
+	# data -
+	c̄::Float64
+	T::Int64
+	r̄ₒ::Float64
+	Vₚ::Float64
+
+	# constructor -
+	Bond() = new()
+end
+
+# ╔═╡ 9f3fcece-093c-448d-b749-877858c53c96
+begin
+
+	# initialize bond cases -
+	bond_array = Array{Bond,1}()
+	N = 4
+	
+	c̄_array = [0.12, 0.12, 0.03, 0.03]
+	T_array = [5, 30, 30, 30]
+	r̄_array = [0.10, 0.10, 0.10, 0.06]
+	Vₚ_array = [100.0, 100.0, 100.0, 100.0];
+	
+	for i ∈ 1:N
+		tmp = Bond()
+		tmp.c̄ = c̄_array[i]
+		tmp.T = T_array[i]
+		tmp.r̄ₒ = r̄_array[i]
+		tmp.Vₚ = Vₚ_array[i]
+		push!(bond_array, tmp)
+	end
 end
 
 # ╔═╡ cdb118c0-afc9-46b5-9e5f-6c000a003fca
@@ -66,30 +101,39 @@ begin
 
 	# compute the sensitivity array -
 
-	# base parameters -
-	r̄ₒ = 0.10
-	c̄ = 0.12
-	T = 30
-	Vₚ = 1275.0
-	Vᵦ_base = price(Vₚ, T, c̄, r̄ₒ)
-	SA = Array{Float64,1}()
-	
 	# initialize -
-	ϵ_array = range(-0.10, stop=0.10, length=110) |> collect # pertrubation array -
-
+	ϵ_array = range(-0.60, stop=0.60, length=110) |> collect # pertrubation array -
+	
+	# base parameters -
+	SA = Array{Float64,2}(undef, N, length(ϵ_array))
+	
 	# main loop -
-	for ϵ ∈ ϵ_array
+	for (i,b) ∈ enumerate(bond_array)
 
-		# compute peturbed price -
-		r′ = r̄ₒ*(1+ϵ)
-		V′ᵦ = price(Vₚ, T, c̄, r′)
-		value = ((V′ᵦ - Vᵦ_base)/Vᵦ_base)*100
-		push!(SA,value)
+		# get data for this bond -
+		c̄ = b.c̄
+		T = b.T
+		r̄ₒ = b.r̄ₒ
+		Vₚ = b.Vₚ
+		Vᵦ_base = price(Vₚ, T, c̄, r̄ₒ)
+		
+		for (j,ϵ) ∈ enumerate(ϵ_array)
+
+			# compute peturbed price -
+			r′ = r̄ₒ*(1+ϵ)
+			V′ᵦ = price(Vₚ, T, c̄, r′)
+			value = (V′ᵦ - Vᵦ_base)/Vᵦ_base
+			SA[i,j] = value
+		end
 	end
 end
 
-# ╔═╡ 0e134e16-1d23-4892-90cb-1d756142cc1a
-plot(ϵ_array, SA)
+# ╔═╡ f613e385-5c03-421c-8084-6764e2b18c41
+begin
+	plot(ϵ_array*100, SA[1,:],lw=2)
+	plot!(ϵ_array*100, SA[2,:],lw=2)
+	plot!(ϵ_array*100, SA[3,:],lw=2)
+end
 
 # ╔═╡ 8d21235e-b8cc-4bbd-9e5f-86cd02978d07
 md"""
@@ -1067,8 +1111,10 @@ version = "0.9.1+5"
 # ╟─c622c0a2-1af0-4ffd-bd5e-1771b19f1cb8
 # ╠═ea505be7-c734-45ef-bbb5-846984b65b47
 # ╠═9248f0e6-aae7-412e-80f9-ff4c058b94ce
+# ╠═61d8e5ac-8115-4a01-ab55-7505fb82de00
+# ╠═9f3fcece-093c-448d-b749-877858c53c96
 # ╠═cdb118c0-afc9-46b5-9e5f-6c000a003fca
-# ╠═0e134e16-1d23-4892-90cb-1d756142cc1a
+# ╠═f613e385-5c03-421c-8084-6764e2b18c41
 # ╟─8d21235e-b8cc-4bbd-9e5f-86cd02978d07
 # ╟─5eace9aa-01fc-11ed-155d-d70efe4b2487
 # ╟─00000000-0000-0000-0000-000000000001
