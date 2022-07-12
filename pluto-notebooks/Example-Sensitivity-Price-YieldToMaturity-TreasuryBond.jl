@@ -8,7 +8,8 @@ using InteractiveUtils
 begin
 	# Load external packages -
 	using Plots
-
+	using Colors
+	
 	# setup paths (we may dump the sensitivity fig to disk)
 	_PATH_TO_NOTEBOOK = pwd()
 	_PATH_TO_FIGS = joinpath(_PATH_TO_NOTEBOOK, "figs");
@@ -122,7 +123,7 @@ begin
 			# compute peturbed price -
 			r′ = r̄ₒ*(1+ϵ)
 			V′ᵦ = price(Vₚ, T, c̄, r′)
-			value = (V′ᵦ - Vᵦ_base)/Vᵦ_base
+			value = ((V′ᵦ - Vᵦ_base)/Vᵦ_base)*100
 			SA[i,j] = value
 		end
 	end
@@ -130,9 +131,23 @@ end
 
 # ╔═╡ f613e385-5c03-421c-8084-6764e2b18c41
 begin
-	plot(ϵ_array*100, SA[1,:],lw=2)
-	plot!(ϵ_array*100, SA[2,:],lw=2)
-	plot!(ϵ_array*100, SA[3,:],lw=2)
+	
+	# make the plot -
+	plot(ϵ_array*100, SA[1,:],lw=2, 
+		label="Vₚ = 1000 USD, c̄ = $(bond_array[1].c̄), r̄ₒ=$(bond_array[1].r̄ₒ), T=$(bond_array[1].T)-yr", 
+		fg_legend = :transparent, bg="floralwhite", background_color_outside="white", ylim=[-50,150])
+	plot!(ϵ_array*100, SA[2,:],lw=2,
+		label="Vₚ = 1000 USD, c̄ = $(bond_array[2].c̄), r̄ₒ=$(bond_array[2].r̄ₒ), T=$(bond_array[2].T)-yr", 
+		ls=:dash, c=colorant"#EF4035")
+	plot!(ϵ_array*100, SA[3,:],lw=2, 
+		label="Vₚ = 1000 USD, c̄ = $(bond_array[3].c̄), r̄ₒ=$(bond_array[3].r̄ₒ), T=$(bond_array[3].T)-yr",
+		ls=:dashdotdot, c=colorant"#55565A")
+	xlabel!("Percentage change market interest rate r̄ (%)", fontsize=18)
+	ylabel!("Percentage change bond price (%)", fontsize=18)
+	
+	# uncomment me to save to disk -
+	savefig(joinpath(_PATH_TO_FIGS,"Fig-Sensitivity-Bond-Price-Interest-Rate.pdf"))
+	
 end
 
 # ╔═╡ 8d21235e-b8cc-4bbd-9e5f-86cd02978d07
@@ -166,9 +181,11 @@ a {
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
+Colors = "~0.12.8"
 Plots = "~1.31.2"
 """
 
@@ -1116,6 +1133,6 @@ version = "0.9.1+5"
 # ╠═cdb118c0-afc9-46b5-9e5f-6c000a003fca
 # ╠═f613e385-5c03-421c-8084-6764e2b18c41
 # ╟─8d21235e-b8cc-4bbd-9e5f-86cd02978d07
-# ╟─5eace9aa-01fc-11ed-155d-d70efe4b2487
+# ╠═5eace9aa-01fc-11ed-155d-d70efe4b2487
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
