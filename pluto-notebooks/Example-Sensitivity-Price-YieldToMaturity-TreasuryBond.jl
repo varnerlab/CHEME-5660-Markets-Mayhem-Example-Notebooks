@@ -134,13 +134,13 @@ begin
 	
 	# make the plot -
 	plot(ϵ_array*100, SA[1,:],lw=2, 
-		label="Vₚ = 1000 USD, c̄ = $(bond_array[1].c̄), r̄ₒ=$(bond_array[1].r̄ₒ), T=$(bond_array[1].T)-yr", 
+		label="Case I: Vₚ = 1000 USD, c̄ = $(bond_array[1].c̄), r̄ₒ=$(bond_array[1].r̄ₒ), T=$(bond_array[1].T)-yr", 
 		fg_legend = :transparent, bg="floralwhite", background_color_outside="white", ylim=[-50,150])
 	plot!(ϵ_array*100, SA[2,:],lw=2,
-		label="Vₚ = 1000 USD, c̄ = $(bond_array[2].c̄), r̄ₒ=$(bond_array[2].r̄ₒ), T=$(bond_array[2].T)-yr", 
+		label="Case II: Vₚ = 1000 USD, c̄ = $(bond_array[2].c̄), r̄ₒ=$(bond_array[2].r̄ₒ), T=$(bond_array[2].T)-yr", 
 		ls=:dash, c=colorant"#EF4035")
 	plot!(ϵ_array*100, SA[3,:],lw=2, 
-		label="Vₚ = 1000 USD, c̄ = $(bond_array[3].c̄), r̄ₒ=$(bond_array[3].r̄ₒ), T=$(bond_array[3].T)-yr",
+		label="Case III: Vₚ = 1000 USD, c̄ = $(bond_array[3].c̄), r̄ₒ=$(bond_array[3].r̄ₒ), T=$(bond_array[3].T)-yr",
 		ls=:dashdotdot, c=colorant"#55565A")
 	xlabel!("Percentage change market interest rate r̄ (%)", fontsize=18)
 	ylabel!("Percentage change bond price (%)", fontsize=18)
