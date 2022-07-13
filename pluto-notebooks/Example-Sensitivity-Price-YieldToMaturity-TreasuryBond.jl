@@ -36,6 +36,11 @@ This notebook recreates something similar to Fig. 16.1 from BKM 10th Edition:
 * [Zvi Bodie, Alex Kane, and Alan J Marcus. Investments. The McGraw-Hill/Irwin series in finance, insurance, and real estate. McGraw-Hill/Irwin, New York, 10th ed edition, 2014. ISBN-10: 9780077861674](https://www.amazon.com/Investments-10th-Zvi-Bodie/dp/0077861671/ref=pd_lpo_2?pd_rd_i=0077861671&psc=1)
 """
 
+# ╔═╡ 0ec0d5fe-cdf1-4213-9651-3361b7a6afc4
+md"""
+###### Setup and initialization
+"""
+
 # ╔═╡ 9248f0e6-aae7-412e-80f9-ff4c058b94ce
 function price(Vₚ::Float64, T::Int64, c̄::Float64, r̄::Float64)
 
@@ -97,6 +102,11 @@ begin
 	end
 end
 
+# ╔═╡ 00f4db7c-18cd-4404-ada4-6bbbac0c27a8
+md"""
+###### Compute loop
+"""
+
 # ╔═╡ cdb118c0-afc9-46b5-9e5f-6c000a003fca
 begin
 
@@ -128,6 +138,11 @@ begin
 		end
 	end
 end
+
+# ╔═╡ e62d6141-d806-444c-9964-c1c0d8024f9c
+md"""
+###### Visualize 
+"""
 
 # ╔═╡ f613e385-5c03-421c-8084-6764e2b18c41
 begin
@@ -1126,11 +1141,14 @@ version = "0.9.1+5"
 # ╟─2f7a0896-ad00-4f52-9b7a-6b6e933949b9
 # ╟─60ddeb55-3ae1-44b4-8e84-4f8cc51fd282
 # ╟─c622c0a2-1af0-4ffd-bd5e-1771b19f1cb8
+# ╟─0ec0d5fe-cdf1-4213-9651-3361b7a6afc4
 # ╠═ea505be7-c734-45ef-bbb5-846984b65b47
 # ╠═9248f0e6-aae7-412e-80f9-ff4c058b94ce
 # ╠═61d8e5ac-8115-4a01-ab55-7505fb82de00
 # ╠═9f3fcece-093c-448d-b749-877858c53c96
+# ╟─00f4db7c-18cd-4404-ada4-6bbbac0c27a8
 # ╠═cdb118c0-afc9-46b5-9e5f-6c000a003fca
+# ╟─e62d6141-d806-444c-9964-c1c0d8024f9c
 # ╠═f613e385-5c03-421c-8084-6764e2b18c41
 # ╟─8d21235e-b8cc-4bbd-9e5f-86cd02978d07
 # ╠═5eace9aa-01fc-11ed-155d-d70efe4b2487
