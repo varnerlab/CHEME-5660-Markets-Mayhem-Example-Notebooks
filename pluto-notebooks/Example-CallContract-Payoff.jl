@@ -9,7 +9,8 @@ begin
 
 	# load external packages
 	using Plots
-
+	using Colors
+	
 	# setup some paths -
 	const _PATH_TO_ROOT = pwd()
 	const _PATH_TO_FIGS = joinpath(_PATH_TO_ROOT, "figs")
@@ -53,10 +54,10 @@ where $V_{c}$ denotes the profit (or loss) and $P_{c}$ denotes the payoff per co
 md"""
 #### Problem statement:
 
-The current share price of `AMD` is \$78.50 per share.
+The current share price of `AMD` is \$78.83 per share (at 3:20 PM ITH on Th 7/14)
 
-* Compute the payoff and profit/loss diagram at expiration for a July 15 `AMD` call contract with a strike $K$=80.0 USD/share. Let the market price for the July 15 `AMD` call contract be $\mathcal{P}$ = 0.36 USD/share.
-* Compute the payoff and profit/loss diagram at expiration for a July 15 `AMD` put contract with a strike $K$=77.0 USD/share. Let the market price for the July 15 `AMD` put contract be $\mathcal{P}$ = 0.50 USD/share.
+* Compute the payoff and profit/loss diagram at expiration for a July 15 `AMD` call contract with a strike $K$ = 80.0 USD/share. Let the market price for the July 15 `AMD` call contract be $\mathcal{P}$ = 0.36 USD/share.
+* Compute the payoff and profit/loss diagram at expiration for a July 15 `AMD` put contract with a strike $K$ = 77.0 USD/share. Let the market price for the July 15 `AMD` put contract be $\mathcal{P}$ = 0.50 USD/share.
 """
 
 # ╔═╡ 3e9b92e8-4d5a-4d59-bce3-d46d26fb800d
@@ -114,10 +115,72 @@ function payoff(contract::T, S::Array{Float64,1}) where T <: AbstractContract
 	return payoff_array
 end;
 
+# ╔═╡ 22976a53-ba30-4189-b016-36ffefe4c41a
+function profit(contract::T, S::Array{Float64,1}) where T <: AbstractContract
+
+	# get data from contract -
+	K = contract.K
+	𝒫 = contract.𝒫
+
+	# initialize -
+	payoff_array = payoff(contract, S)
+	
+	# return -
+	return (payoff_array .- 𝒫)
+end;
+
 # ╔═╡ 4d6708ab-a726-485a-9f6e-ebdf5952df33
 md"""
 ### Results
 """
+
+# ╔═╡ 4152aa7d-aea9-47f0-9a11-4d65c77612e8
+begin
+
+	# setup the range of underlying prices -
+	ϵ = 0.04  # lets look at a range of ± ϵ 
+	Sₒ = 78.94 # base S value -
+	S_array = range((1-ϵ)*Sₒ, stop=(1+ϵ)*Sₒ, length=100) |> collect
+
+	# show -
+	nothing
+end
+
+# ╔═╡ e6d303fa-4f4a-4679-9ea6-7aea8fecb181
+md"""
+##### Payoff and Profit/Loss for an AMD Jul 15 Call Contract
+"""
+
+# ╔═╡ 35108c1d-7736-4529-9d5b-ab66c83cfe2d
+begin
+
+	# setup AMD call contract -
+	amd_call_contract = Call()
+	amd_call_contract.K = 80.0
+	amd_call_contract.𝒫 = 0.36
+
+	# compute the payoff for the AMD call -
+	payoff_amd_call = payoff(amd_call_contract, S_array);
+	profit_amd_call = profit(amd_call_contract, S_array)
+
+	# show -
+	nothing
+end
+
+# ╔═╡ 6e04f923-d557-49f0-96bd-ebd3889e6d53
+begin
+
+	# visualize the call payoff diagram
+	plot(S_array, payoff_amd_call,lw=2, legend=:topleft, label="AMD call payoff (buyer)", 
+		c=colorant"#0068AC", bg="aliceblue", background_color_outside="white", framestyle = :box, 
+		fg_legend = :transparent)
+	plot!(S_array, profit_amd_call,lw=2, label="AMD call profit (buyer)", c=colorant"#EF4035")
+	plot!(S_array, -1*payoff_amd_call,lw=2, ls=:dash, label="AMD call payoff (seller)", c=colorant"#0068AC")
+	plot!(S_array, -1*profit_amd_call,lw=2, ls=:dash, label="AMD call profit (seller)", c=colorant"#EF4035")
+	xlabel!("AMD share price (USD/share)", fontsize=18)
+	ylabel!("Payoff (Profit) call@expiration (USD/share)", fontsize=18)
+	
+end
 
 # ╔═╡ 900b2213-9812-4cb5-a1cb-14c712b8d950
 md"""
@@ -155,9 +218,11 @@ a {
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
+Colors = "~0.12.8"
 Plots = "~1.31.2"
 """
 
@@ -1106,7 +1171,12 @@ version = "0.9.1+5"
 # ╠═28d64689-67d0-49d2-8c9c-0bf04658abec
 # ╠═1ca77489-a6a9-4535-941f-35303a6d19fd
 # ╠═4940f290-4a1d-47b9-b3e4-1e517fcca2ed
+# ╠═22976a53-ba30-4189-b016-36ffefe4c41a
 # ╟─4d6708ab-a726-485a-9f6e-ebdf5952df33
+# ╠═4152aa7d-aea9-47f0-9a11-4d65c77612e8
+# ╟─e6d303fa-4f4a-4679-9ea6-7aea8fecb181
+# ╠═35108c1d-7736-4529-9d5b-ab66c83cfe2d
+# ╠═6e04f923-d557-49f0-96bd-ebd3889e6d53
 # ╟─900b2213-9812-4cb5-a1cb-14c712b8d950
 # ╟─3381b641-587a-41c1-8bc1-0c74ce9a227a
 # ╟─2a6faa08-0399-11ed-0822-31a6bd7aeaee
