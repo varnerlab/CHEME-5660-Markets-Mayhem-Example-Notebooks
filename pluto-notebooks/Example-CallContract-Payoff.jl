@@ -33,6 +33,8 @@ Smith School of Chemical and Biomolecular Engineering, Cornell University, Ithac
 # ╔═╡ 6d801195-b1aa-4774-b494-70bc961644a6
 md"""
 ### Introduction
+
+##### Call contract
 A [call contract](https://www.investopedia.com/terms/c/calloption.asp) gives the option contract buyer the right, but not the obligation, to purchase 100 shares of `XYZ` (per contract) from the seller at a particular price per share (called the strike price $K$) at some point in the future (called the expiration date). In the case of [American](https://www.investopedia.com/terms/a/americanoption.asp) style [call contracts](https://www.investopedia.com/terms/c/calloption.asp), the option buyer can exercise their right at any point between the date contract was purchased until the expiration date. On the other hand, buyers of [European](https://www.investopedia.com/terms/e/europeanoption.asp) style contracts can only exercise their right on the expiration date. The right to purchase shares of `XYZ` at $K$ USD/share is not free; the option buyer pays a premium per contract to the seller for this right. 
 
 The profit that a call contract buyer experiences, denoted by $P_{c}$, depends upon the difference between the share price of `XYZ` and the strike price $K$ of the contract (contract payoff) and how much the call contract costs.
@@ -48,16 +50,33 @@ and a profit (loss) of:
 $$V_{c} = P_{c} -  \mathcal{P}$$
 
 where $V_{c}$ denotes the profit (or loss) and $P_{c}$ denotes the payoff per contract per share of `XYZ`.
+
+##### Put contract
+A [put contract](https://www.investopedia.com/terms/p/putoption.asp) gives the option contract buyer the right, but not the obligation, to sell 100 shares of `XYZ` (per contract) to the option seller at the strike price $K$, either by or on the expiration date. In the case of [American](https://www.investopedia.com/terms/a/americanoption.asp) style [put contracts](https://www.investopedia.com/terms/p/putoption.asp), the option buyer can exercise their right at any point between when the contract is purchased and the expiration date. On the other hand, buyers of [European](https://www.investopedia.com/terms/e/europeanoption.asp) style contracts can only exercise their right on the expiration date. The right to sell shares of `XYZ` at $K$ USD/share is not free; the option buyer pays a premium per contract to the option seller for this right. 
+
+The profit that a put contract buyer experiences, denoted by $P_{p}$, depends upon the difference between the share price of `XYZ` and the strike price $K$ of the contract (contract payoff) and how much the put contract costs.
+
+Suppose an investor purchases a put contract for the underlying stock `XYZ` for $\mathcal{P}$ USD/contract, where the contract controls 100 shares of `XYZ.` 
+
+Let the strike price of the put contract be $K$ USD/share, and the share price of `XYZ` be S USD/share. Then, at expiration, the put contract has the payoff:
+
+$$P_{p} = \max\left(K-S,0\right)$$
+
+and a profit (loss) of:
+
+$$V_{p} = P_{p} -  \mathcal{P}$$
+
+where $V_{p}$ denotes the profit (or loss) and $P_{p}$ denotes the payoff per contract per share of `XYZ`.
 """
 
 # ╔═╡ 2efef749-dc5e-4271-aaa8-b81b484131d1
 md"""
 #### Problem statement:
 
-The current share price of `AMD` is \$78.83 per share (at 3:20 PM ITH on Th 7/14)
+The current share price of `AMD` is \$78.94 per share (around 3:30 PM ITH time on Th 7/14)
 
-* Compute the payoff and profit/loss diagram at expiration for a July 15 `AMD` call contract with a strike $K$ = 80.0 USD/share. Let the market price for the July 15 `AMD` call contract be $\mathcal{P}$ = 0.36 USD/share.
-* Compute the payoff and profit/loss diagram at expiration for a July 15 `AMD` put contract with a strike $K$ = 77.0 USD/share. Let the market price for the July 15 `AMD` put contract be $\mathcal{P}$ = 0.50 USD/share.
+* Compute the payoff and profit/loss diagram at expiration for a July 15 `AMD` call contract with a strike $K$ = 80.0 USD/share. The market price for the July 15 `AMD` call contract be $\mathcal{P}$ = 0.36 USD/share.
+* Compute the payoff and profit/loss diagram at expiration for a July 15 `AMD` put contract with a strike $K$ = 77.0 USD/share. The market price for the July 15 `AMD` put contract be $\mathcal{P}$ = 0.50 USD/share.
 """
 
 # ╔═╡ 3e9b92e8-4d5a-4d59-bce3-d46d26fb800d
@@ -138,7 +157,7 @@ md"""
 begin
 
 	# setup the range of underlying prices -
-	ϵ = 0.04  # lets look at a range of ± ϵ 
+	ϵ = 0.05  # lets look at a range of ± ϵ 
 	Sₒ = 78.94 # base S value -
 	S_array = range((1-ϵ)*Sₒ, stop=(1+ϵ)*Sₒ, length=100) |> collect
 
@@ -171,20 +190,71 @@ end
 begin
 
 	# visualize the call payoff diagram
-	plot(S_array, payoff_amd_call,lw=2, legend=:topleft, label="AMD call payoff (buyer)", 
-		c=colorant"#0068AC", bg="aliceblue", background_color_outside="white", framestyle = :box, 
+	plot(S_array, payoff_amd_call,lw=2, legend=:topleft, label="AMD call payoff (buyer) K = $(amd_call_contract.K)", 
+		c=colorant"#0068AC", bg="floralwhite", background_color_outside="white", framestyle = :box, 
 		fg_legend = :transparent)
-	plot!(S_array, profit_amd_call,lw=2, label="AMD call profit (buyer)", c=colorant"#EF4035")
-	plot!(S_array, -1*payoff_amd_call,lw=2, ls=:dash, label="AMD call payoff (seller)", c=colorant"#0068AC")
-	plot!(S_array, -1*profit_amd_call,lw=2, ls=:dash, label="AMD call profit (seller)", c=colorant"#EF4035")
-	xlabel!("AMD share price (USD/share)", fontsize=18)
+	plot!(S_array, profit_amd_call,lw=2, label="AMD call profit (buyer) K = $(amd_call_contract.K)", 
+		c=colorant"#EF4035")
+	plot!(S_array, -1*payoff_amd_call,lw=2, ls=:dash, label="AMD call payoff (seller) K = $(amd_call_contract.K)", 
+		c=colorant"#0068AC")
+	plot!(S_array, -1*profit_amd_call,lw=2, ls=:dash, label="AMD call profit (seller) K = $(amd_call_contract.K)", 
+		c=colorant"#EF4035")
+	xlabel!("AMD share price @expiration (USD/share)", fontsize=18)
 	ylabel!("Payoff (Profit) call@expiration (USD/share)", fontsize=18)
+
+	# uncomment me to save figure to disk -
+	# savefig(joinpath(_PATH_TO_FIGS, "AMD-Call-Jul15-1DTE.pdf"))
+	
+end
+
+# ╔═╡ ca31f053-f45e-4e68-8032-996f38ef9db9
+md"""
+##### Payoff and Profit/Loss for an AMD Jul 15 Put Contract
+"""
+
+# ╔═╡ 8e4b25cc-b9ec-410e-9b6c-be75877cc5eb
+begin
+
+	# setup AMD call contract -
+	amd_put_contract = Put()
+	amd_put_contract.K = 77.0
+	amd_put_contract.𝒫 = 0.50
+
+	# compute the payoff for the AMD call -
+	payoff_amd_put = payoff(amd_put_contract, S_array);
+	profit_amd_put = profit(amd_put_contract, S_array)
+
+	# show -
+	nothing
+end
+
+# ╔═╡ 2408ab73-6195-4671-b2df-b8218bd580f2
+begin
+
+	# visualize the put payoff diagram
+	plot(S_array, payoff_amd_put,lw=2, legend=:topright, label="AMD put payoff (buyer) K = $(amd_put_contract.K)", 
+		c=colorant"#0068AC", bg="floralwhite", background_color_outside="white", framestyle = :box, 
+		fg_legend = :transparent)
+	plot!(S_array, profit_amd_put,lw=2, label="AMD put profit (buyer) K = $(amd_put_contract.K)", c=colorant"#EF4035")
+	plot!(S_array, -1*payoff_amd_put,lw=2, ls=:dash, label="AMD put payoff (seller) K = $(amd_put_contract.K)", 
+		c=colorant"#0068AC")
+	plot!(S_array, -1*profit_amd_put,lw=2, ls=:dash, label="AMD put profit (seller) K = $(amd_put_contract.K)", 
+		c=colorant"#EF4035")
+	xlabel!("AMD share price @expiration  (USD/share)", fontsize=18)
+	ylabel!("Payoff (Profit) put@expiration (USD/share)", fontsize=18)
+
+	# uncomment me to save figure to disk -
+	# savefig(joinpath(_PATH_TO_FIGS, "AMD-Put-Jul15-1DTE.pdf"))
 	
 end
 
 # ╔═╡ 900b2213-9812-4cb5-a1cb-14c712b8d950
 md"""
 ### Additional Resources
+
+* Additional reading on a [Call option contract](https://en.wikipedia.org/wiki/Call_option)
+* Additional reading on a [Put option contract](https://en.wikipedia.org/wiki/Put_option)
+
 """
 
 # ╔═╡ 3381b641-587a-41c1-8bc1-0c74ce9a227a
@@ -1176,7 +1246,10 @@ version = "0.9.1+5"
 # ╠═4152aa7d-aea9-47f0-9a11-4d65c77612e8
 # ╟─e6d303fa-4f4a-4679-9ea6-7aea8fecb181
 # ╠═35108c1d-7736-4529-9d5b-ab66c83cfe2d
-# ╠═6e04f923-d557-49f0-96bd-ebd3889e6d53
+# ╟─6e04f923-d557-49f0-96bd-ebd3889e6d53
+# ╟─ca31f053-f45e-4e68-8032-996f38ef9db9
+# ╠═8e4b25cc-b9ec-410e-9b6c-be75877cc5eb
+# ╟─2408ab73-6195-4671-b2df-b8218bd580f2
 # ╟─900b2213-9812-4cb5-a1cb-14c712b8d950
 # ╟─3381b641-587a-41c1-8bc1-0c74ce9a227a
 # ╟─2a6faa08-0399-11ed-0822-31a6bd7aeaee
