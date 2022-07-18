@@ -71,11 +71,8 @@ function compute_drift_and_volatility(data::DataFrame; m::Int64 = 30)::Tuple{Flo
 	end
 	variance = (1/(m-1))*tmp
 
-	return (μᵣ, sqrt(variance), 𝒫[end-m,:close])
+	return (μᵣ, sqrt(variance), 𝒫[m,:close])
 end;
-
-# ╔═╡ cd22f1e4-422e-4876-bd13-a43f6de19bda
-
 
 # ╔═╡ 3995f3ad-bc1f-43f7-a4a4-0da23754dc7f
 md"""
@@ -86,10 +83,14 @@ md"""
 price_data_dictionary = load(joinpath(_PATH_TO_DIR, "Portfolio-Data-06-20-22.jld2"))["dd"];
 
 # ╔═╡ 16019af1-9251-40b1-82ed-d007209c856d
-AMD_data = price_data_dictionary["AMD"]
+begin
+	m = 45
+	AMD_data = price_data_dictionary["AMD"]
+	(μ, σ, Xₒ) = compute_drift_and_volatility(AMD_data; m=m); # compute the daily return and volatility 
+end
 
-# ╔═╡ d56415fe-a2d4-4f2f-a805-ac3e9f0dacb1
-(μ, σ, Xₒ) = compute_drift_and_volatility(AMD_data; m=45); # compute the daily return and volatility 
+# ╔═╡ 7d1e4fd1-c48f-4507-b906-6be07881d7f4
+AMD_data[46,:timestamp]
 
 # ╔═╡ 7e9a072c-ab98-498e-9aa1-53e26255aaed
 begin
@@ -125,8 +126,20 @@ end
 
 # ╔═╡ 1363f505-2aba-4e19-9549-9cfb9e962652
 begin
+
+	# sort the data (newest data on top)
+	𝒫 = sort(AMD_data, [order(:timestamp, rev=true), :close]);
+
+	# compute actual price array -
+	actual_price_array = Array{Float64,1}()
+	for i ∈ 45:-1:1
+		value = 𝒫[i, :close]
+		push!(actual_price_array, value)
+	end
+	
 	plot(T,X,c=:lightgray,label="")
 	plot!(T,XM,c=:black,label="mean AMD share price", legend=:topleft, lw=2)
+	plot!(T, actual_price_array, c=:red, lw=2, label="actual")
 	xlabel!("Time index (days)", fontsize=18)
 	ylabel!("AMD daily close price (USD/share)", fontsize=18)
 end
@@ -1277,11 +1290,10 @@ version = "0.9.1+5"
 # ╟─2842f556-ca13-4b85-a06d-a519dee2cb79
 # ╠═6777afee-9737-4ed2-9cfd-a6dfa611a225
 # ╠═b7a674f6-63e2-497d-aa38-d54f15a8a819
-# ╠═cd22f1e4-422e-4876-bd13-a43f6de19bda
 # ╟─3995f3ad-bc1f-43f7-a4a4-0da23754dc7f
 # ╠═92dda4bb-8978-4f2a-8cc0-7b2c57789de0
 # ╠═16019af1-9251-40b1-82ed-d007209c856d
-# ╠═d56415fe-a2d4-4f2f-a805-ac3e9f0dacb1
+# ╠═7d1e4fd1-c48f-4507-b906-6be07881d7f4
 # ╠═7e9a072c-ab98-498e-9aa1-53e26255aaed
 # ╠═1363f505-2aba-4e19-9549-9cfb9e962652
 # ╟─fa1e335b-3ff0-48d7-a764-fe49f87af505
