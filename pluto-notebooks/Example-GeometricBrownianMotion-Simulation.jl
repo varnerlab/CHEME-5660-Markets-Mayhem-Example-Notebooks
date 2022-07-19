@@ -84,27 +84,30 @@ price_data_dictionary = load(joinpath(_PATH_TO_DIR, "Portfolio-Data-06-20-22.jld
 
 # ╔═╡ 16019af1-9251-40b1-82ed-d007209c856d
 begin
-	m = 45
+	m = 36
 	AMD_data = price_data_dictionary["AMD"]
 	(μ, σ, Xₒ) = compute_drift_and_volatility(AMD_data; m=m); # compute the daily return and volatility 
 end
 
-# ╔═╡ 7d1e4fd1-c48f-4507-b906-6be07881d7f4
-AMD_data[46,:timestamp]
+# ╔═╡ b8bda84f-2c57-4a5e-9444-6d6837532878
+(μ, σ^2/2)
 
 # ╔═╡ 7e9a072c-ab98-498e-9aa1-53e26255aaed
 begin
 
 	# initialize -
-	number_of_sample_paths = 100
-	number_of_time_steps = 45
-	time_final = 45
+	# sort the data (newest data on top)
+	𝒫 = sort(AMD_data, [order(:timestamp, rev=true), :close]);
+	m′ = m + 10
+	number_of_sample_paths = 200
+	number_of_time_steps = m′
+	time_final = m′
 	T = range(0, stop=time_final, length=number_of_time_steps) |> collect
 	X = Array{Float64,2}(undef, number_of_time_steps, number_of_sample_paths)
 	Δt = T[2] - T[1]
 	
 	# set the initial condition (for all sample paths) -
-	X[1,:] .= Xₒ
+	X[1,:] .= 𝒫[m′, :close]
 
 	# pre-initialize random variable noise term -
 	d = Normal(0,1)
@@ -127,14 +130,13 @@ end
 # ╔═╡ 1363f505-2aba-4e19-9549-9cfb9e962652
 begin
 
-	# sort the data (newest data on top)
-	𝒫 = sort(AMD_data, [order(:timestamp, rev=true), :close]);
-
 	# compute actual price array -
 	actual_price_array = Array{Float64,1}()
-	for i ∈ 45:-1:1
+	T′ = Array{Float64,1}()
+	for i ∈ m′:-1:1
 		value = 𝒫[i, :close]
 		push!(actual_price_array, value)
+		push!(T′, i-1)
 	end
 	
 	plot(T,X,c=:lightgray,label="")
@@ -1293,7 +1295,7 @@ version = "0.9.1+5"
 # ╟─3995f3ad-bc1f-43f7-a4a4-0da23754dc7f
 # ╠═92dda4bb-8978-4f2a-8cc0-7b2c57789de0
 # ╠═16019af1-9251-40b1-82ed-d007209c856d
-# ╠═7d1e4fd1-c48f-4507-b906-6be07881d7f4
+# ╠═b8bda84f-2c57-4a5e-9444-6d6837532878
 # ╠═7e9a072c-ab98-498e-9aa1-53e26255aaed
 # ╠═1363f505-2aba-4e19-9549-9cfb9e962652
 # ╟─fa1e335b-3ff0-48d7-a764-fe49f87af505
