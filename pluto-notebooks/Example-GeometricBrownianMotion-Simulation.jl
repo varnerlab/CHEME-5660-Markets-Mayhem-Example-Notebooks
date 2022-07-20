@@ -15,9 +15,11 @@ begin
 	using FileIO
 	using Plots
 	using Distributions
+	using Colors
 	
 	# setup paths -
 	const _PATH_TO_DIR = joinpath(pwd(), "data")
+	const _PATH_TO_FIGS = joinpath(pwd(), "figs")
 
 	# show -
 	nothing
@@ -89,9 +91,6 @@ begin
 	(μ, σ, Xₒ) = compute_drift_and_volatility(AMD_data; m=m); # compute the daily return and volatility 
 end
 
-# ╔═╡ b8bda84f-2c57-4a5e-9444-6d6837532878
-(μ, σ^2/2)
-
 # ╔═╡ 7e9a072c-ab98-498e-9aa1-53e26255aaed
 begin
 
@@ -122,10 +121,14 @@ begin
 
 	# calculate some stats from X -
 	XM = mean(X,dims=2);
+	σ_mc = std(X,dims=2)
 	
 	# show -
 	nothing
 end
+
+# ╔═╡ 8e29d56b-d530-4426-a775-990e89e4721e
+σ_mc
 
 # ╔═╡ 1363f505-2aba-4e19-9549-9cfb9e962652
 begin
@@ -138,12 +141,24 @@ begin
 		push!(actual_price_array, value)
 		push!(T′, i-1)
 	end
+
+	U = XM .+ σ_mc
+	L = XM .- σ_mc
 	
-	plot(T,X,c=:lightgray,label="")
-	plot!(T,XM,c=:black,label="mean AMD share price", legend=:topleft, lw=2)
+	plot(T,X,c=colorant"#89CCE2",label="", bg="aliceblue", background_color_outside="white", fg_legend = :transparent, 
+		framestyle = :box, xlim=[0,m′])
+	plot!(T,XM,c=colorant"#0068AC",fillrange=U, fillalpha = 0.4, lw=2, label="μ ± σ")
+	plot!(T,XM,c=colorant"#0068AC",fillrange=L, fillalpha = 0.4, lw=2, label="")
 	plot!(T, actual_price_array, c=:red, lw=2, label="actual")
+	plot!(T,XM,c=:black, legend=:topleft, lw=3, label="μ (mean) AMD daily close price (m=$(m))")
 	xlabel!("Time index (days)", fontsize=18)
 	ylabel!("AMD daily close price (USD/share)", fontsize=18)
+
+	# uncomment me to save figure to disk -
+	savefig(joinpath(_PATH_TO_FIGS, "Fig-AMD-GBM-Sim-N200-IS36-OS10.pdf"))
+
+	# ucomment me to save simulation data to disk -
+	jldsave(joinpath(_PATH_TO_DIR, "AMD-DBM-N200-IS36-OS10.dat"); T=T, XM=XM, XA=actual_price_array, μ=μ, σ=σ, m=m, m′=m′)
 end
 
 # ╔═╡ fa1e335b-3ff0-48d7-a764-fe49f87af505
@@ -183,6 +198,7 @@ a {
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
@@ -192,6 +208,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 CSV = "~0.10.4"
+Colors = "~0.12.8"
 DataFrames = "~1.3.4"
 Distributions = "~0.25.65"
 FileIO = "~1.14.0"
@@ -1295,8 +1312,8 @@ version = "0.9.1+5"
 # ╟─3995f3ad-bc1f-43f7-a4a4-0da23754dc7f
 # ╠═92dda4bb-8978-4f2a-8cc0-7b2c57789de0
 # ╠═16019af1-9251-40b1-82ed-d007209c856d
-# ╠═b8bda84f-2c57-4a5e-9444-6d6837532878
 # ╠═7e9a072c-ab98-498e-9aa1-53e26255aaed
+# ╠═8e29d56b-d530-4426-a775-990e89e4721e
 # ╠═1363f505-2aba-4e19-9549-9cfb9e962652
 # ╟─fa1e335b-3ff0-48d7-a764-fe49f87af505
 # ╟─026943bc-58ce-4cc3-b389-2acd083a29ae
