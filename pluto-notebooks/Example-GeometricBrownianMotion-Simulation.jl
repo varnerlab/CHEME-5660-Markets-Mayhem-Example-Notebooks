@@ -127,9 +127,6 @@ begin
 	nothing
 end
 
-# ╔═╡ 8e29d56b-d530-4426-a775-990e89e4721e
-σ_mc
-
 # ╔═╡ 1363f505-2aba-4e19-9549-9cfb9e962652
 begin
 
@@ -155,10 +152,10 @@ begin
 	ylabel!("AMD daily close price (USD/share)", fontsize=18)
 
 	# uncomment me to save figure to disk -
-	savefig(joinpath(_PATH_TO_FIGS, "Fig-AMD-GBM-Sim-N200-IS36-OS10.pdf"))
+	# savefig(joinpath(_PATH_TO_FIGS, "Fig-AMD-GBM-Sim-N200-IS36-OS10.pdf"))
 
 	# ucomment me to save simulation data to disk -
-	jldsave(joinpath(_PATH_TO_DIR, "AMD-DBM-N200-IS36-OS10.dat"); T=T, XM=XM, XA=actual_price_array, μ=μ, σ=σ, m=m, m′=m′)
+	# jldsave(joinpath(_PATH_TO_DIR, "AMD-DBM-N200-IS36-OS10.dat"); T=T, XM=XM, XA=actual_price_array, μ=μ, σ=σ, m=m, m′=m′)
 end
 
 # ╔═╡ fa1e335b-3ff0-48d7-a764-fe49f87af505
@@ -1313,7 +1310,6 @@ version = "0.9.1+5"
 # ╠═92dda4bb-8978-4f2a-8cc0-7b2c57789de0
 # ╠═16019af1-9251-40b1-82ed-d007209c856d
 # ╠═7e9a072c-ab98-498e-9aa1-53e26255aaed
-# ╠═8e29d56b-d530-4426-a775-990e89e4721e
 # ╠═1363f505-2aba-4e19-9549-9cfb9e962652
 # ╟─fa1e335b-3ff0-48d7-a764-fe49f87af505
 # ╟─026943bc-58ce-4cc3-b389-2acd083a29ae
