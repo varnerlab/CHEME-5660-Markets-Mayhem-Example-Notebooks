@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.11
 
 using Markdown
 using InteractiveUtils
@@ -9,9 +9,9 @@ begin
 
 	# load external packages -
 	using Plots
-	using PQEcolaPoint
 	using DataFrames
 	using Dates
+	using PQEcolaPoint
 end
 
 # ╔═╡ c4016f62-2cd0-49b2-8f08-6db39ba0211a
@@ -52,22 +52,52 @@ md"""
 ### Materials and Methods
 """
 
+# ╔═╡ be73a3db-a0f8-44f9-858a-1a2256245249
+function ticker(type::String, underlying::String, expiration::Date, K::Float64)::String
+
+    # build components for the options ticker -
+    ticker_component = uppercase(underlying)
+    YY = year(expiration) - 2000 # hack to get 2 digit year 
+    MM = lpad(month(expiration), 2, "0")
+    DD = lpad(day(expiration), 2, "0")
+
+    # compute the price code -
+    strike_component = lpad(convert(Int64,K*1000), 8, "0")
+
+    # build the ticker string -
+    ticker_string = "O:$(ticker_component)$(YY)$(MM)$(DD)$(type)$(strike_component)"
+    
+    # return -
+    return ticker_string
+end;
+
+# ╔═╡ b9e80c25-4ab7-431f-b2b6-e96ff96d5593
+md"""
+#### Case I: $K_{1}>K_{2}$
+"""
+
 # ╔═╡ 249ee244-8bfd-425e-a05b-bef7e3987d58
-begin
-	# create a SHORT put contract -
+let
+	
+	# setup parameters -
+	D = Date(2022, 04, 14)
+	K₁ = 315.0
+	K₂ = 310.0
+
+	# build SHORT contract leg -
 	short_put_contract = PutContractModel()
-	short_put_contract.ticker = "XYZ"
-	short_put_contract.expiration_date = Date(2022, 04, 14)
-	short_put_contract.strike_price = 315.0
+	short_put_contract.ticker = ticker("P", "XYZ", D, K₁)
+	short_put_contract.expiration_date = D
+	short_put_contract.strike_price = K₁
 	short_put_contract.premium = 5.25
 	short_put_contract.number_of_contracts = 1
 	short_put_contract.direction = -1
 	
 	# create a LONG put contract -
 	long_put_contract = PutContractModel()
-	long_put_contract.ticker = "XYZ"
-	long_put_contract.expiration_date = Date(2022, 04, 14)
-	long_put_contract.strike_price = 310.0
+	long_put_contract.ticker = ticker("P", "XYZ", D, K₂)
+	long_put_contract.expiration_date = D
+	long_put_contract.strike_price = K₂
 	long_put_contract.premium = 4.31
 	long_put_contract.number_of_contracts = 1
 	long_put_contract.direction = 1
@@ -81,8 +111,14 @@ begin
 	underlying_range = range(305.0, stop = 320.0, length = 1000) |> collect
 	
 	# compute the table -
-	short_credit_spread_table = expiration(put_credit_spread_contract_array, underlying_range)
+	dt = expiration(put_credit_spread_contract_array, underlying_range)
+
+	# plot -
+	plot(dt[!, :S], dt[!,:profit])
 end
+
+# ╔═╡ 5d487d23-c74f-41aa-8e60-e28ee2a02cfe
+525 - 431
 
 # ╔═╡ e78ee2e4-dd47-4c0f-9e9e-d681bd03e5a6
 md"""
@@ -122,7 +158,7 @@ Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
 DataFrames = "~1.3.4"
-PQEcolaPoint = "~0.1.0"
+PQEcolaPoint = "~0.1.1"
 Plots = "~1.31.3"
 """
 
@@ -130,8 +166,9 @@ Plots = "~1.31.3"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.3"
+julia_version = "1.8.0-rc3"
 manifest_format = "2.0"
+project_hash = "8b19b3315b21568e51c66263e00ce7d319dc50d3"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -141,6 +178,7 @@ version = "3.3.3"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+version = "1.1.1"
 
 [[deps.Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -228,6 +266,7 @@ version = "3.45.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+version = "0.5.2+0"
 
 [[deps.Contour]]
 git-tree-sha1 = "d05d9e7b7aedff4e5b51a029dced05cfb6125781"
@@ -281,9 +320,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[deps.Distributions]]
 deps = ["ChainRulesCore", "DensityInterface", "FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns", "Test"]
-git-tree-sha1 = "429077fd74119f5ac495857fd51f4120baf36355"
+git-tree-sha1 = "aafa0665e3db0d3d0890cdc8191ea03dc279b042"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.65"
+version = "0.25.66"
 
 [[deps.DocStringExtensions]]
 deps = ["LibGit2"]
@@ -294,6 +333,7 @@ version = "0.9.0"
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+version = "1.6.0"
 
 [[deps.DualNumbers]]
 deps = ["Calculus", "NaNMath", "SpecialFunctions"]
@@ -530,10 +570,12 @@ version = "0.15.16"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+version = "7.83.1+1"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -542,6 +584,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -632,6 +675,7 @@ version = "1.1.1"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.28.0+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
@@ -649,6 +693,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+version = "2022.2.1"
 
 [[deps.NaNMath]]
 deps = ["OpenLibm_jll"]
@@ -658,6 +703,7 @@ version = "1.0.1"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+version = "1.2.0"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -668,10 +714,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.20+0"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
+version = "0.8.1+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -710,9 +758,9 @@ version = "0.11.16"
 
 [[deps.PQEcolaPoint]]
 deps = ["BSON", "CSV", "DataFrames", "Dates", "Distributions", "LinearAlgebra", "Plots", "StatsBase"]
-git-tree-sha1 = "ee31d4c5e4808d69115d1c2f63c505b013406a69"
+git-tree-sha1 = "e23b9a55844e1e455abb9c794fc1f40bb87ae8fc"
 uuid = "6e0fd8a8-0703-4e38-9954-b94da054c472"
-version = "0.1.0"
+version = "0.1.1"
 
 [[deps.Parsers]]
 deps = ["Dates"]
@@ -729,6 +777,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+version = "1.8.0"
 
 [[deps.PlotThemes]]
 deps = ["PlotUtils", "Statistics"]
@@ -832,6 +881,7 @@ version = "0.3.0+0"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+version = "0.7.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
@@ -928,6 +978,7 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+version = "1.0.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -944,6 +995,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+version = "1.10.0"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -1143,6 +1195,7 @@ version = "1.4.0+3"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1165,6 +1218,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "5.1.1+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1187,10 +1241,12 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
+version = "1.47.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+version = "17.4.0+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1218,7 +1274,10 @@ version = "0.9.1+5"
 # ╟─e8d55e97-6ba8-4a84-849d-a19da37201a1
 # ╟─52a55ce8-9bd5-4b2e-bfe1-20f326a413f1
 # ╠═514ec272-53d3-4628-b0e8-646ad828e5bd
+# ╠═be73a3db-a0f8-44f9-858a-1a2256245249
+# ╟─b9e80c25-4ab7-431f-b2b6-e96ff96d5593
 # ╠═249ee244-8bfd-425e-a05b-bef7e3987d58
+# ╠═5d487d23-c74f-41aa-8e60-e28ee2a02cfe
 # ╟─e78ee2e4-dd47-4c0f-9e9e-d681bd03e5a6
 # ╟─1c6da12c-06c2-11ed-1c59-d3deafd69588
 # ╟─00000000-0000-0000-0000-000000000001
