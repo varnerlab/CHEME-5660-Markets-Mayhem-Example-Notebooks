@@ -70,6 +70,11 @@ function ticker(type::String, underlying::String, expiration::Date, K::Float64):
     return ticker_string
 end;
 
+# ╔═╡ 74819097-6603-4b3d-868d-7153bc5e21b6
+md"""
+### Results
+"""
+
 # ╔═╡ b9e80c25-4ab7-431f-b2b6-e96ff96d5593
 md"""
 #### Case I: $K_{1}>K_{2}$
@@ -164,13 +169,13 @@ let
 	push!(put_credit_spread_contract_array, long_put_contract)
 	
 	# setup the underlying -
-	underlying_range = range(50.0, stop = 150.0, length = 1000) |> collect
+	underlying_range = range(80.0, stop = 110.0, length = 1000) |> collect
 	
 	# compute the table -
 	dt = expiration(put_credit_spread_contract_array, underlying_range)
 
 	# plot -
-	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:bottomright, lw=2, 
+	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:topright, lw=2, 
 		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
 	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=2)
 	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=2)
@@ -1332,9 +1337,10 @@ version = "0.9.1+5"
 # ╟─c2325842-5b1e-4c19-8aa8-943aeecaf32c
 # ╟─9c782b1b-3d40-4f1e-946a-e31d412b9212
 # ╟─e8d55e97-6ba8-4a84-849d-a19da37201a1
-# ╟─52a55ce8-9bd5-4b2e-bfe1-20f326a413f1
+# ╠═52a55ce8-9bd5-4b2e-bfe1-20f326a413f1
 # ╠═514ec272-53d3-4628-b0e8-646ad828e5bd
 # ╠═be73a3db-a0f8-44f9-858a-1a2256245249
+# ╟─74819097-6603-4b3d-868d-7153bc5e21b6
 # ╟─b9e80c25-4ab7-431f-b2b6-e96ff96d5593
 # ╟─249ee244-8bfd-425e-a05b-bef7e3987d58
 # ╟─85c27320-4512-4bdd-a2be-d3a92c623af3
