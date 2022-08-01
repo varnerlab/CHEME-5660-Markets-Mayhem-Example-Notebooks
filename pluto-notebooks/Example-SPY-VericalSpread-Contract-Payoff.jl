@@ -73,6 +73,7 @@ end;
 # ╔═╡ b9e80c25-4ab7-431f-b2b6-e96ff96d5593
 md"""
 #### Case I: $K_{1}>K_{2}$
+Let the share price of the underlying stock be given by $S_{o}$. If the short strike $K_{1}$ is greater than the long strike $K_{2}$, and $K_{2}<S_{o}<K_{1}$, then this position is a [Vertical Bull Credit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp). The directionality assumption of a [Vertical Bull Credit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp) is bullish, i.e., the investor believes the price of the underlying will increase. 
 """
 
 # ╔═╡ 249ee244-8bfd-425e-a05b-bef7e3987d58
@@ -115,7 +116,8 @@ let
 	dt = expiration(put_credit_spread_contract_array, underlying_range)
 
 	# plot -
-	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:topleft, lw=2, ylim=(-6.0,6.0))
+	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:topleft, lw=2, ylim=(-6.0,6.0),
+		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
 	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=2)
 	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=2)
 	xlabel!("Underlying price SPY (USD/share)", fontsize=18)
@@ -125,6 +127,7 @@ end
 # ╔═╡ 85c27320-4512-4bdd-a2be-d3a92c623af3
 md"""
 #### Case II: $K_{1}<K_{2}$
+Let the share price of the underlying stock be given by $S_{o}$. If the short strike $K_{1}$ is less than the long strike $K_{2}$, and $K_{1}<S_{o}<K_{2}$, then this position is a [Vertical Bull Debit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp). The directionality assumption of a [Vertical Bull Debit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp) is bearish, i.e., the investor believes the price of the underlying will decrease. 
 """
 
 # ╔═╡ 0aa469dc-3b74-4704-9f3b-64c1547ab1cf
@@ -167,7 +170,8 @@ let
 	dt = expiration(put_credit_spread_contract_array, underlying_range)
 
 	# plot -
-	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:bottomright, lw=2)
+	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:bottomright, lw=2, 
+		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
 	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=2)
 	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=2)
 	xlabel!("Underlying price AMD (USD/share)", fontsize=18)
@@ -224,7 +228,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0-rc3"
 manifest_format = "2.0"
-project_hash = "731d5529570bb153299ab9b83601dc8624e52320"
+project_hash = "2a7cfe9b44adbf6343b102bec7314ad56f8b8ffb"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
