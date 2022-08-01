@@ -12,6 +12,7 @@ begin
 	using DataFrames
 	using Dates
 	using PQEcolaPoint
+	using Colors
 end
 
 # ╔═╡ c4016f62-2cd0-49b2-8f08-6db39ba0211a
@@ -38,12 +39,10 @@ md"""
 md"""
 #### Problem statement
 
-Compute the payoff and profit for [SPY](https://www.investopedia.com/articles/investing/122215/spy-spdr-sp-500-trust-etf.asp), an exchange-traded fund (ETF) that tracks the S&P 500 index.
+Compute the profit for put vertical spreads. 
 
-* Case I: $K_{1}>K_{2}$. A vertical call spread on `SPY` where the strike of the long leg ($K_{1}$) is _greater than_ the strike of the short leg ($K_{2}$).
-* Case II: $K_{1}<K_{2}$. A vertical call spread on `SPY` where the strike of the long leg ($K_{1}$) is _less than_ the strike of the short leg ($K_{2}$)
-* Case III: $K_{1}>K_{2}$. A vertical put spread on `SPY` where the strike of the long leg ($K_{1}$) is _greater than_ the strike of the short leg ($K_{2}$).
-* Case IV: $K_{1}<K_{2}$. A vertical put spread on `SPY` where the strike of the long leg ($K_{1}$) is _less than_ the strike of the short leg ($K_{2}$)
+* Case I: $K_{1}>K_{2}$. A __vertical put spread__ on [SPY](https://www.investopedia.com/articles/investing/122215/spy-spdr-sp-500-trust-etf.asp), an exchange-traded fund (ETF) that tracks the S&P 500 index, where the strike of the short leg $K_{1}$ is _greater than_ the strike of the long leg $K_{2}$.
+* Case II: $K_{1}<K_{2}$. A __vertical put spread__ on [AMD](https://finance.yahoo.com/quote/AMD/) where the strike of the short leg $K_{1}$ is _less than_ the strike of the long leg $K_{2}$
 
 """
 
@@ -83,10 +82,12 @@ let
 	D = Date(2022, 04, 14)
 	K₁ = 315.0
 	K₂ = 310.0
+	T₁ = ticker("P", "XYZ", D, K₁)
+	T₂ = ticker("P", "XYZ", D, K₂)
 
 	# build SHORT contract leg -
 	short_put_contract = PutContractModel()
-	short_put_contract.ticker = ticker("P", "XYZ", D, K₁)
+	short_put_contract.ticker = T₁
 	short_put_contract.expiration_date = D
 	short_put_contract.strike_price = K₁
 	short_put_contract.premium = 5.25
@@ -95,7 +96,7 @@ let
 	
 	# create a LONG put contract -
 	long_put_contract = PutContractModel()
-	long_put_contract.ticker = ticker("P", "XYZ", D, K₂)
+	long_put_contract.ticker = T₂
 	long_put_contract.expiration_date = D
 	long_put_contract.strike_price = K₂
 	long_put_contract.premium = 4.31
@@ -114,11 +115,64 @@ let
 	dt = expiration(put_credit_spread_contract_array, underlying_range)
 
 	# plot -
-	plot(dt[!, :S], dt[!,:profit])
+	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:topleft, lw=2, ylim=(-6.0,6.0))
+	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=2)
+	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=2)
+	xlabel!("Underlying price SPY (USD/share)", fontsize=18)
+	ylabel!("Profit (USD/share)", fontsize=18)
 end
 
-# ╔═╡ 5d487d23-c74f-41aa-8e60-e28ee2a02cfe
-525 - 431
+# ╔═╡ 85c27320-4512-4bdd-a2be-d3a92c623af3
+md"""
+#### Case II: $K_{1}<K_{2}$
+"""
+
+# ╔═╡ 0aa469dc-3b74-4704-9f3b-64c1547ab1cf
+let
+	
+	# setup parameters -
+	D = Date(2022, 09, 16)
+	K₁ = 90.0
+	K₂ = 105.0
+	T₁ = ticker("P", "AMD", D, K₁)
+	T₂ = ticker("P", "AMD", D, K₂)
+
+	# build SHORT contract leg -
+	short_put_contract = PutContractModel()
+	short_put_contract.ticker = T₁
+	short_put_contract.expiration_date = D
+	short_put_contract.strike_price = K₁
+	short_put_contract.premium = 4.70
+	short_put_contract.number_of_contracts = 1
+	short_put_contract.direction = -1
+	
+	# create a LONG put contract -
+	long_put_contract = PutContractModel()
+	long_put_contract.ticker = T₂
+	long_put_contract.expiration_date = D
+	long_put_contract.strike_price = K₂
+	long_put_contract.premium = 13.35
+	long_put_contract.number_of_contracts = 1
+	long_put_contract.direction = 1
+	
+	# build model -
+	put_credit_spread_contract_array = Array{AbstractAssetModel,1}()
+	push!(put_credit_spread_contract_array, short_put_contract)
+	push!(put_credit_spread_contract_array, long_put_contract)
+	
+	# setup the underlying -
+	underlying_range = range(50.0, stop = 150.0, length = 1000) |> collect
+	
+	# compute the table -
+	dt = expiration(put_credit_spread_contract_array, underlying_range)
+
+	# plot -
+	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:bottomright, lw=2)
+	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=2)
+	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=2)
+	xlabel!("Underlying price AMD (USD/share)", fontsize=18)
+	ylabel!("Profit (USD/share)", fontsize=18)
+end
 
 # ╔═╡ e78ee2e4-dd47-4c0f-9e9e-d681bd03e5a6
 md"""
@@ -151,12 +205,14 @@ a {
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 PQEcolaPoint = "6e0fd8a8-0703-4e38-9954-b94da054c472"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
+Colors = "~0.12.8"
 DataFrames = "~1.3.4"
 PQEcolaPoint = "~0.1.1"
 Plots = "~1.31.3"
@@ -168,7 +224,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0-rc3"
 manifest_format = "2.0"
-project_hash = "8b19b3315b21568e51c66263e00ce7d319dc50d3"
+project_hash = "731d5529570bb153299ab9b83601dc8624e52320"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -1276,8 +1332,9 @@ version = "0.9.1+5"
 # ╠═514ec272-53d3-4628-b0e8-646ad828e5bd
 # ╠═be73a3db-a0f8-44f9-858a-1a2256245249
 # ╟─b9e80c25-4ab7-431f-b2b6-e96ff96d5593
-# ╠═249ee244-8bfd-425e-a05b-bef7e3987d58
-# ╠═5d487d23-c74f-41aa-8e60-e28ee2a02cfe
+# ╟─249ee244-8bfd-425e-a05b-bef7e3987d58
+# ╟─85c27320-4512-4bdd-a2be-d3a92c623af3
+# ╟─0aa469dc-3b74-4704-9f3b-64c1547ab1cf
 # ╟─e78ee2e4-dd47-4c0f-9e9e-d681bd03e5a6
 # ╟─1c6da12c-06c2-11ed-1c59-d3deafd69588
 # ╟─00000000-0000-0000-0000-000000000001
