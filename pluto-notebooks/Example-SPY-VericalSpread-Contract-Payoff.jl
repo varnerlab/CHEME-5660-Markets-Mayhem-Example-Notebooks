@@ -24,7 +24,7 @@ end
 
 # ╔═╡ c4016f62-2cd0-49b2-8f08-6db39ba0211a
 md"""
-### CHEME 5660: Calculating the Payoff and Profit at Expiration from Vertical Spreads
+### CHEME 5660: Calculating the Profit at Expiration for Vertical Spreads
 """
 
 # ╔═╡ c2325842-5b1e-4c19-8aa8-943aeecaf32c
@@ -37,7 +37,7 @@ Smith School of Chemical and Biomolecular Engineering, Cornell University, Ithac
 md"""
 ### Introduction
 
-[Vertical spreads](https://www.investopedia.com/terms/v/verticalspread.asp) are constructed by simultaneously buying (long) and selling (short) the _same type of option_, with the same expiration date but with different strike prices. Thus, [vertical spreads](https://www.investopedia.com/terms/v/verticalspread.asp) have two _legs_: a long leg (the option purchased by the investor) and a short leg (the option sold by the investor). 
+[Vertical spreads](https://www.investopedia.com/terms/v/verticalspread.asp) are constructed by simultaneously buying (long) and selling (short) the _same type of option_, with the same expiration date but with _different_ strike prices. Thus, [vertical spreads](https://www.investopedia.com/terms/v/verticalspread.asp) have two _legs_: a long leg (the option purchased by the investor) and a short leg (the option sold by the investor). 
 
 [Vertical spreads](https://www.investopedia.com/terms/v/verticalspread.asp) are a defined risk, directional strategy, i.e., the investor believes the underlying asset `XYZ` share price will either increase or decrease (depending upon the vertical spread). [Vertical spreads](https://www.investopedia.com/terms/v/verticalspread.asp) are defined risk because the maximum possible gain and loss are known when the contract is sold; thus, an investor knows how much they can make or lose at expiration. 
 """
@@ -46,7 +46,7 @@ md"""
 md"""
 #### Problem statement
 
-Compute the profit for put vertical spreads. 
+Compute the profit for the put vertical spreads: 
 
 * Case I: $K_{1}>K_{2}$. A __vertical put spread__ on [SPY](https://www.investopedia.com/articles/investing/122215/spy-spdr-sp-500-trust-etf.asp), an exchange-traded fund (ETF) that tracks the S&P 500 index, where the strike of the short leg $K_{1}$ is _greater than_ the strike of the long leg $K_{2}$.
 * Case II: $K_{1}<K_{2}$. A __vertical put spread__ on [AMD](https://finance.yahoo.com/quote/AMD/) where the strike of the short leg $K_{1}$ is _less than_ the strike of the long leg $K_{2}$
@@ -59,6 +59,12 @@ md"""
 """
 
 # ╔═╡ be73a3db-a0f8-44f9-858a-1a2256245249
+# ------------------------------------------------------------------------------------------------- #
+# Ticker calculates the ticker symbol for an option
+# ticker: (String, String, Date, Float) -> String
+#
+# see: https://polygon.io/blog/how-to-read-a-stock-options-ticker/
+# ------------------------------------------------------------------------------------------------- #
 function ticker(type::String, underlying::String, expiration::Date, K::Float64)::String
 
     # build components for the options ticker -
@@ -141,9 +147,9 @@ let
 	xlabel!("Underlying price SPY (USD/share)", fontsize=18)
 	ylabel!("Profit (USD/share)", fontsize=18)
 
-	# save -
-	filename = "Fig-SPY-Profit-Put-Credit-Spread.pdf"
-	savefig(joinpath(_PATH_TO_FIGS, filename))
+	# uncomment me to save fig to a file -
+	# filename = "Fig-SPY-Profit-Put-Credit-Spread.pdf"
+	# savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ 85c27320-4512-4bdd-a2be-d3a92c623af3
@@ -204,7 +210,7 @@ let
 	xlabel!("Underlying price AMD (USD/share)", fontsize=18)
 	ylabel!("Profit (USD/share)", fontsize=18)
 
-	# save -
+	# uncomment me to save fig to a file -
 	# filename = "Fig-AMD-Profit-Put-Debit-Spread.pdf"
 	# savefig(joinpath(_PATH_TO_FIGS, filename))
 end
@@ -1368,9 +1374,9 @@ version = "0.9.1+5"
 # ╠═be73a3db-a0f8-44f9-858a-1a2256245249
 # ╟─74819097-6603-4b3d-868d-7153bc5e21b6
 # ╟─b9e80c25-4ab7-431f-b2b6-e96ff96d5593
-# ╠═249ee244-8bfd-425e-a05b-bef7e3987d58
+# ╟─249ee244-8bfd-425e-a05b-bef7e3987d58
 # ╟─85c27320-4512-4bdd-a2be-d3a92c623af3
-# ╠═0aa469dc-3b74-4704-9f3b-64c1547ab1cf
+# ╟─0aa469dc-3b74-4704-9f3b-64c1547ab1cf
 # ╟─e78ee2e4-dd47-4c0f-9e9e-d681bd03e5a6
 # ╟─1c6da12c-06c2-11ed-1c59-d3deafd69588
 # ╟─00000000-0000-0000-0000-000000000001
