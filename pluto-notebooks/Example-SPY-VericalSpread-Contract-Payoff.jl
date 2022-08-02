@@ -95,8 +95,8 @@ let
 	D = Date(2022, 04, 14)
 	K₁ = 315.0
 	K₂ = 310.0
-	T₁ = ticker("P", "XYZ", D, K₁)
-	T₂ = ticker("P", "XYZ", D, K₂)
+	T₁ = ticker("P", "SPY", D, K₁)
+	T₂ = ticker("P", "SPY", D, K₂)
 
 	# build SHORT contract leg -
 	short_put_contract = PutContractModel()
@@ -122,22 +122,28 @@ let
 	push!(put_credit_spread_contract_array, long_put_contract)
 	
 	# setup the underlying -
-	underlying_range = range(305.0, stop = 320.0, length = 1000) |> collect
+	L = 1000
+	underlying_range = range(305.0, stop = 320.0, length = L) |> collect
 	
 	# compute the table -
 	dt = expiration(put_credit_spread_contract_array, underlying_range)
 
+	# zero line -
+	Z = zeros(L)
+	
 	# plot -
 	plot(dt[!, :S], dt[!,:profit],c=colorant"#55565A", label="total profit", legend=:topleft, lw=3, ylim=(-6.0,6.0),
 		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
-	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=colorant"#EF4035", label="short put K=$(K₁)", ls=:dash, lw=2)
-	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=colorant"#0068AC", label="long put K=$(K₂)", ls=:dash, lw=2)
+	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=colorant"#EF4035", label="short put K=$(K₁)", ls=:dash, lw=1)
+	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=colorant"#0068AC", label="long put K=$(K₂)", ls=:dash, lw=1)
+	plot!(dt[!,:S], Z, c=colorant"#6EB43F", ls=:dot, label="break-even", lw=1)
+	
 	xlabel!("Underlying price SPY (USD/share)", fontsize=18)
 	ylabel!("Profit (USD/share)", fontsize=18)
 
 	# save -
-	# filename = "Fig-SPY-Profit-Put-Credit-Spread.pdf"
-	# savefig(joinpath(_PATH_TO_FIGS, filename))
+	filename = "Fig-SPY-Profit-Put-Credit-Spread.pdf"
+	savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ 85c27320-4512-4bdd-a2be-d3a92c623af3
@@ -180,21 +186,26 @@ let
 	push!(put_credit_spread_contract_array, long_put_contract)
 	
 	# setup the underlying -
-	underlying_range = range(80.0, stop = 110.0, length = 1000) |> collect
+	L = 1000
+	underlying_range = range(80.0, stop = 110.0, length = L) |> collect
 	
 	# compute the table -
 	dt = expiration(put_credit_spread_contract_array, underlying_range)
 
+	# zero line -
+	Z = zeros(L)
+
 	# plot -
-	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:topright, lw=2, 
+	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:topright, lw=3, 
 		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
-	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=2)
-	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=2)
+	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=1)
+	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=1)
+	plot!(dt[!,:S], Z, c=colorant"#6EB43F", ls=:dot, label="break-even", lw=1)
 	xlabel!("Underlying price AMD (USD/share)", fontsize=18)
 	ylabel!("Profit (USD/share)", fontsize=18)
 
 	# save -
-	# filename = "Fig-SPY-Profit-Put-Debit-Spread.pdf"
+	# filename = "Fig-AMD-Profit-Put-Debit-Spread.pdf"
 	# savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
@@ -1359,7 +1370,7 @@ version = "0.9.1+5"
 # ╟─b9e80c25-4ab7-431f-b2b6-e96ff96d5593
 # ╠═249ee244-8bfd-425e-a05b-bef7e3987d58
 # ╟─85c27320-4512-4bdd-a2be-d3a92c623af3
-# ╟─0aa469dc-3b74-4704-9f3b-64c1547ab1cf
+# ╠═0aa469dc-3b74-4704-9f3b-64c1547ab1cf
 # ╟─e78ee2e4-dd47-4c0f-9e9e-d681bd03e5a6
 # ╟─1c6da12c-06c2-11ed-1c59-d3deafd69588
 # ╟─00000000-0000-0000-0000-000000000001
