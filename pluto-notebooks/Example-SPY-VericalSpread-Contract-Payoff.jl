@@ -13,6 +13,13 @@ begin
 	using Dates
 	using PQEcolaPoint
 	using Colors
+
+	# setup paths -
+	const _PATH_TO_ROOT = pwd()
+	const _PATH_TO_FIGS = joinpath(_PATH_TO_ROOT, "figs")
+
+	# show -
+	nothing
 end
 
 # ╔═╡ c4016f62-2cd0-49b2-8f08-6db39ba0211a
@@ -78,7 +85,7 @@ md"""
 # ╔═╡ b9e80c25-4ab7-431f-b2b6-e96ff96d5593
 md"""
 #### Case I: $K_{1}>K_{2}$
-Let the share price of the underlying stock be given by $S_{o}$. If the short strike $K_{1}$ is greater than the long strike $K_{2}$, and $K_{2}<S_{o}<K_{1}$, then this position is a [Vertical Bull Credit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp). The directionality assumption of a [Vertical Bull Credit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp) is bullish, i.e., the investor believes the price of the underlying will increase. 
+Let the share price of the underlying stock be given by $S_{o}$. If the short strike $K_{1}$ is greater than the long strike $K_{2}$, and $K_{2}<S_{o}<K_{1}$, then this position is a [Vertical Bull Credit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp). The directionality assumption of a [Vertical Bull Credit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp) is bullish, i.e., the investor believes the price of the underlying will _increase_. 
 """
 
 # ╔═╡ 249ee244-8bfd-425e-a05b-bef7e3987d58
@@ -121,18 +128,22 @@ let
 	dt = expiration(put_credit_spread_contract_array, underlying_range)
 
 	# plot -
-	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:topleft, lw=2, ylim=(-6.0,6.0),
+	plot(dt[!, :S], dt[!,:profit],c=colorant"#55565A", label="total profit", legend=:topleft, lw=3, ylim=(-6.0,6.0),
 		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
-	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=2)
-	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=2)
+	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=colorant"#EF4035", label="short put K=$(K₁)", ls=:dash, lw=2)
+	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=colorant"#0068AC", label="long put K=$(K₂)", ls=:dash, lw=2)
 	xlabel!("Underlying price SPY (USD/share)", fontsize=18)
 	ylabel!("Profit (USD/share)", fontsize=18)
+
+	# save -
+	# filename = "Fig-SPY-Profit-Put-Credit-Spread.pdf"
+	# savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ 85c27320-4512-4bdd-a2be-d3a92c623af3
 md"""
 #### Case II: $K_{1}<K_{2}$
-Let the share price of the underlying stock be given by $S_{o}$. If the short strike $K_{1}$ is less than the long strike $K_{2}$, and $K_{1}<S_{o}<K_{2}$, then this position is a [Vertical Bull Debit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp). The directionality assumption of a [Vertical Bull Debit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp) is bearish, i.e., the investor believes the price of the underlying will decrease. 
+Let the share price of the underlying stock be given by $S_{o}$. If the short strike $K_{1}$ is less than the long strike $K_{2}$, and $K_{1}<S_{o}<K_{2}$, then this position is a [Vertical Bull Debit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp). The directionality assumption of a [Vertical Bull Debit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp) is bearish, i.e., the investor believes the price of the underlying will _decrease_. 
 """
 
 # ╔═╡ 0aa469dc-3b74-4704-9f3b-64c1547ab1cf
@@ -181,6 +192,10 @@ let
 	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=2)
 	xlabel!("Underlying price AMD (USD/share)", fontsize=18)
 	ylabel!("Profit (USD/share)", fontsize=18)
+
+	# save -
+	# filename = "Fig-SPY-Profit-Put-Debit-Spread.pdf"
+	# savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ e78ee2e4-dd47-4c0f-9e9e-d681bd03e5a6
@@ -1337,12 +1352,12 @@ version = "0.9.1+5"
 # ╟─c2325842-5b1e-4c19-8aa8-943aeecaf32c
 # ╟─9c782b1b-3d40-4f1e-946a-e31d412b9212
 # ╟─e8d55e97-6ba8-4a84-849d-a19da37201a1
-# ╠═52a55ce8-9bd5-4b2e-bfe1-20f326a413f1
+# ╟─52a55ce8-9bd5-4b2e-bfe1-20f326a413f1
 # ╠═514ec272-53d3-4628-b0e8-646ad828e5bd
 # ╠═be73a3db-a0f8-44f9-858a-1a2256245249
 # ╟─74819097-6603-4b3d-868d-7153bc5e21b6
 # ╟─b9e80c25-4ab7-431f-b2b6-e96ff96d5593
-# ╟─249ee244-8bfd-425e-a05b-bef7e3987d58
+# ╠═249ee244-8bfd-425e-a05b-bef7e3987d58
 # ╟─85c27320-4512-4bdd-a2be-d3a92c623af3
 # ╟─0aa469dc-3b74-4704-9f3b-64c1547ab1cf
 # ╟─e78ee2e4-dd47-4c0f-9e9e-d681bd03e5a6
