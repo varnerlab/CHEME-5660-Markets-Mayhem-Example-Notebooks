@@ -136,8 +136,8 @@ let
 	ylabel!("Profit (USD/share)", fontsize=18)
 
 	# uncomment me to save fig to a file -
-	#filename = "Fig-AMD-Profit-Short-Straddle-Spread.pdf"
-	#savefig(joinpath(_PATH_TO_FIGS, filename))
+	# filename = "Fig-AMD-Profit-Short-Straddle.pdf"
+	# savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ 93c27caa-2bba-4f27-856e-4876aab7cabc
@@ -203,8 +203,8 @@ let
 	ylabel!("Profit (USD/share)", fontsize=18)
 
 	# uncomment me to save fig to a file -
-	#filename = "Fig-AMD-Profit-Long-Straddle-Spread.pdf"
-	#savefig(joinpath(_PATH_TO_FIGS, filename))
+	# filename = "Fig-AMD-Profit-Long-Straddle.pdf"
+	# savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ 93d5c56a-c76c-4634-b08c-aab2218844c7
