@@ -13,7 +13,8 @@ begin
 	using Dates
 	using PQEcolaPoint
 	using Colors
-
+	using PlutoUI
+	
 	# setup paths -
 	const _PATH_TO_ROOT = pwd()
 	const _PATH_TO_FIGS = joinpath(_PATH_TO_ROOT, "figs")
@@ -36,6 +37,38 @@ Smith School of Chemical and Biomolecular Engineering, Cornell University, Ithac
 # ╔═╡ af370708-56e8-407b-89e2-8ceb429ae290
 md"""
 ### Introduction
+
+A [straddle](https://www.investopedia.com/terms/s/straddle.asp) is a _neutral undefined risk strategy_ constructed by simultaneously buying (or selling) a put and a call option with the _same expiration_, and the _same strike price_. Depending upon the choice of the strike prices and whether an investor buys or sells both legs, a [straddle](https://www.investopedia.com/terms/s/straddle.asp) can be initiated as a credit or debit and can potentially have undefined profit or loss. 
+
+Unlike directional strategies such as vertical spreads, a [straddle](https://www.investopedia.com/terms/s/straddle.asp) is a _neutral_ position; an investor holding a [straddle](https://www.investopedia.com/terms/s/straddle.asp) profits (or experiences an undefined loss) if the share price of `XYZ` moves up, down or potentially zero depending upon the construction of the straddle.
+"""
+
+# ╔═╡ 9b6a9c26-2076-49f5-8a4d-97e68054f935
+md"""
+##### Theory
+Consider a [straddle](https://www.investopedia.com/terms/s/straddle.asp) on the underlying asset `XYZ`. 
+Let the current share price of `XYZ` be $S_{o}$ USD/share, and let $S$ denote the share price of `XYZ` at expiration. Further, let $K_{j}$ denote the strike price of contract $j$ (USD/share), where the price of contract $j$ is $\mathcal{P}_{j}$ (USD/share). Finally, let index $j=1$ denote the put contract, $j=2$ denote the call contract, and $K_{1}=K_{2}\equiv{K}$ (both legs have the same strike in a [straddle](https://www.investopedia.com/terms/s/straddle.asp)).
+
+Then, the profit for a single straddle contract $\hat{P}$ at expiration is given by:
+
+$$\hat{P} = \theta\cdot\left(P_{1}+P_{2}\right)$$
+
+where $\theta_{1}=\theta_{2}\equiv\theta$ denotes a direction parameter: $\theta=-1$ if each leg is sold (short), $\theta=1$ otherwise. After substitution of the profit functions for a put and a call contract, 
+the overall profit $\hat{P}$ is given by:
+
+$$\hat{P} = \theta\cdot\Bigl[(K-S)^{+}+(S-K)^{+}-(\mathcal{P}_{1}+\mathcal{P}_{2})\Bigr]$$
+
+where $(K-S)^{+}=\max(K-S,0)$ and $(S-K)^{+} = \max(S-K,0)$. Thus, the profit (or loss) of a straddle has three regimes given by:
+
+$$\hat{P} = \begin{cases}
+  \theta\cdot\Bigl[(S-K)-\left(\mathcal{P}_{1}+\mathcal{P}_{2}\right)\Bigr]  & S>K \\
+  -\theta\cdot\Bigl[\mathcal{P}_{1}+\mathcal{P}_{2}\Bigr] & S=K \\
+    \theta\cdot\Bigl[(K-S)-\left(\mathcal{P}_{1}+\mathcal{P}_{2}\right)\Bigr] & S<K
+\end{cases}$$
+
+Finally, a straddle has _two_ possible breakeven points denoted as $S^{+}$ and $S^{-}$:
+* If $S>K$: a straddle will breakeven at $S^{+} = K + \left(\mathcal{P}_{1}+\mathcal{P}_{2}\right)$
+* If $S<K$: a straddle will breakeven at $S^{-} = K - \left(\mathcal{P}_{1}+\mathcal{P}_{2}\right)$.
 """
 
 # ╔═╡ 77cf2ff0-b6e4-4b18-ae29-ff624d5bf3fc
@@ -77,6 +110,30 @@ md"""
 md"""
 #### Case I: Short Straddle
 """
+
+# ╔═╡ 9dcc04b4-e42b-4ad1-82d8-310feb499ce4
+begin
+
+	# setup parameters -
+	D = Date(2022, 11, 21)
+	K₁ = 100.0
+	K₂ = K₁
+	T₁ = ticker("P", "AMD", D, K₁)
+	T₂ = ticker("C", "AMD", D, K₂)
+
+	# premium data (on 08/03/22 at 11:36 AM ITH)
+	Sₒ = 96.36
+	𝒫₁ = 9.95 	# Short put at K = 100.0
+	𝒫₂ = 7.45  	# Short call at K = 100.0
+
+	# compute the break-even prices -
+	S⁺ = K₁ + (𝒫₁+𝒫₂)
+	S⁻ = K₁ - (𝒫₁+𝒫₂)
+
+	with_terminal() do
+		println("Break-even for AMD short straddle: S⁺ = $(S⁺) and S⁻ = $(S⁻) USD/share")
+	end
+end
 
 # ╔═╡ 447aad86-5002-46e5-8d30-9b8b8a88c4d0
 let
@@ -130,7 +187,7 @@ let
 	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:topright, lw=3, 
 		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
 	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=1)
-	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=1)
+	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="short call K=$(K₂)", ls=:dash, lw=1)
 	plot!(dt[!,:S], Z, c=colorant"#6EB43F", ls=:dot, label="break-even", lw=1)
 	xlabel!("Underlying price AMD (USD/share)", fontsize=18)
 	ylabel!("Profit (USD/share)", fontsize=18)
@@ -143,6 +200,11 @@ end
 # ╔═╡ 93c27caa-2bba-4f27-856e-4876aab7cabc
 md"""
 #### Case II: Long Straddle
+"""
+
+# ╔═╡ 00ebef36-3747-4b98-bf64-a127bb9cd4de
+md"""
+A long straddle is a short straddle rotated around the break-even line. The break-even values $S^{+}$ and $S^{-}$ for a long straddle are the same as the short straddle. However, unlike the short straddle case, a long straddle investor needs the share price of `XYZ` to move (in either direction) to make the initial cost of purchasing the call and put options.
 """
 
 # ╔═╡ 177eed0b-bdd1-45fe-a3ea-c45c363a4950
@@ -196,8 +258,8 @@ let
 	# plot -
 	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:topright, lw=3, 
 		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
-	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=1)
-	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=1)
+	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="long put K=$(K₁)", ls=:dash, lw=1)
+	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long call K=$(K₂)", ls=:dash, lw=1)
 	plot!(dt[!,:S], Z, c=colorant"#6EB43F", ls=:dot, label="break-even", lw=1)
 	xlabel!("Underlying price AMD (USD/share)", fontsize=18)
 	ylabel!("Profit (USD/share)", fontsize=18)
@@ -243,12 +305,14 @@ DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 PQEcolaPoint = "6e0fd8a8-0703-4e38-9954-b94da054c472"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
 Colors = "~0.12.8"
 DataFrames = "~1.3.4"
 PQEcolaPoint = "~0.1.1"
 Plots = "~1.31.5"
+PlutoUI = "~0.7.39"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -257,7 +321,13 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0-rc3"
 manifest_format = "2.0"
-project_hash = "731d5529570bb153299ab9b83601dc8624e52320"
+project_hash = "3b89d4f58e19af159525cdc88a18982344695c52"
+
+[[deps.AbstractPlutoDingetjes]]
+deps = ["Pkg"]
+git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
+uuid = "6e696c72-6542-2067-7265-42206c756150"
+version = "1.1.4"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -567,6 +637,24 @@ deps = ["DualNumbers", "LinearAlgebra", "OpenLibm_jll", "SpecialFunctions", "Tes
 git-tree-sha1 = "709d864e3ed6e3545230601f94e11ebc65994641"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.11"
+
+[[deps.Hyperscript]]
+deps = ["Test"]
+git-tree-sha1 = "8d511d5b81240fc8e6802386302675bdf47737b9"
+uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
+version = "0.0.4"
+
+[[deps.HypertextLiteral]]
+deps = ["Tricks"]
+git-tree-sha1 = "c47c5fa4c5308f27ccaac35504858d8914e102f9"
+uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+version = "0.9.4"
+
+[[deps.IOCapture]]
+deps = ["Logging", "Random"]
+git-tree-sha1 = "f7be53659ab06ddc986428d3a9dcc95f6fa6705a"
+uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
+version = "0.2.2"
 
 [[deps.IniFile]]
 git-tree-sha1 = "f550e6e32074c939295eb5ea6de31849ac2c9625"
@@ -886,6 +974,12 @@ git-tree-sha1 = "05873db92e703f134649d88b8a164f3b7acb4d73"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.31.5"
 
+[[deps.PlutoUI]]
+deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
+git-tree-sha1 = "8d1f54886b9037091edf146b517989fc4a09efec"
+uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+version = "0.7.39"
+
 [[deps.PooledArrays]]
 deps = ["DataAPI", "Future"]
 git-tree-sha1 = "a6062fe4063cdafe78f4a0a81cfffb89721b30e7"
@@ -1101,6 +1195,11 @@ deps = ["Random", "Test"]
 git-tree-sha1 = "216b95ea110b5972db65aa90f88d8d89dcb8851c"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
 version = "0.9.6"
+
+[[deps.Tricks]]
+git-tree-sha1 = "6bac775f2d42a611cdfcd1fb217ee719630c4175"
+uuid = "410a4b4d-49e4-4fbc-ab6d-cb71b17b3775"
+version = "0.1.6"
 
 [[deps.URIs]]
 git-tree-sha1 = "e59ecc5a41b000fa94423a578d29290c7266fc10"
@@ -1360,13 +1459,16 @@ version = "0.9.1+5"
 # ╟─ec9fd8b2-6868-404b-8005-f24617acf98f
 # ╟─5315767a-1340-11ed-093a-8b5e3ecf4328
 # ╟─af370708-56e8-407b-89e2-8ceb429ae290
+# ╟─9b6a9c26-2076-49f5-8a4d-97e68054f935
 # ╟─77cf2ff0-b6e4-4b18-ae29-ff624d5bf3fc
 # ╠═2d32fa7d-06c8-47d4-ace7-1fb1e00612d2
 # ╠═f91b0c80-f5f8-4666-a8f4-f9be13293e18
 # ╟─b8bdfc40-eb01-4e73-bac5-c2fc840b44c6
 # ╟─e0ec5f26-e31c-46e3-8fa1-16064491b9f9
+# ╠═9dcc04b4-e42b-4ad1-82d8-310feb499ce4
 # ╠═447aad86-5002-46e5-8d30-9b8b8a88c4d0
 # ╟─93c27caa-2bba-4f27-856e-4876aab7cabc
+# ╟─00ebef36-3747-4b98-bf64-a127bb9cd4de
 # ╠═177eed0b-bdd1-45fe-a3ea-c45c363a4950
 # ╟─93d5c56a-c76c-4634-b08c-aab2218844c7
 # ╟─0f231551-95bb-4691-8b3c-34cb56054a07
