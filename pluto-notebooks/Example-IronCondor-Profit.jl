@@ -37,6 +37,47 @@ Smith School of Chemical and Biomolecular Engineering, Cornell University, Ithac
 # ╔═╡ 5c4776d1-6c0c-4309-8575-a5d14e6de504
 md"""
 ### Introduction
+An [iron condor](https://www.investopedia.com/terms/i/ironcondor.asp) is a _neutral defined risk_ position constructed by _selling_ a put (1) and call (2) options on the underlying asset `XYZ`, while simultaneously _buying_ a put (3) and call (4) options on `XYZ`. All the legs of an [iron condor](https://www.investopedia.com/terms/i/ironcondor.asp) have the same underlying asset `XYZ`, and have the same expiration, but they have different strike prices where $K_{3}<K_{1}<K_{2}<K_{4}$.
+
+An investor holding an [iron condor](https://www.investopedia.com/terms/i/ironcondor.asp) profits if the share price of `XYZ` remains between the strike prices of the two short options (like a short strangle). However, unlike a [strangle](https://www.investopedia.com/terms/s/strangle.asp), an [iron condor](https://www.investopedia.com/terms/i/ironcondor.asp) is a defined risk strategy; the long options act to limit any possible losses, but they also restrict potential gains (because of their cost).
+"""
+
+# ╔═╡ be2839a0-ee92-41dc-88fa-5eb1bc047bf8
+md"""
+#### Profit conditions
+Let the current share price of `XYZ` be $S_{o}$ USD/share, and let $S$ denote the share price of `XYZ` at expiration. Further, let $K_{j}$ denote the strike price of contract $j$ (USD/share), where the price of contract $j$ is $\mathcal{P}_{j}$ (USD/share). Finally, let index $j=1$ denote the short put contract, $j=2$ denote the short call contract,  $j=3$ denote the long put contract and  $j=4$ denote the long call contract; for an [iron condor](https://www.investopedia.com/terms/i/ironcondor.asp) $K_{3} < K_{1} <K_{2} < K_{3}$.
+
+Then, the profit for a single iron condor contract $\hat{P}$ at expiration is given by:
+
+$$\hat{P} = \theta_{1}P_{1} + \theta_{2}P_{2} + \theta_{3}P_{3} + \theta_{4}P_{4}$$
+
+where $\theta_{1}=\theta_{2} = -1$ (short legs) and $\theta_{3}=\theta_{4} = 1$ (long legs). After substitution of the profit functions for put and call contracts, the overall profit $\hat{P}$ is given by:
+
+$$\hat{P} = -(K_{1}-S)^{+} - (S-K_{2})^{+} + (K_{3} - S)^{+} + (S-K_{4})^{+} + \left(\mathcal{P}_{1} + \mathcal{P}_{2} - \mathcal{P}_{3}-\mathcal{P}_{4}\right)$$
+
+where $(K_{\star}-S)^{+}=\max(K_{\star}-S,0)$ and $(S-K_{\star})^{+} = \max(S-K_{\star},0)$. The profit (or loss) of an iron condor has several important regimes given by:
+
+
+$$\hat{P} = \begin{cases}
+  K_{2} - K_{4} + \Bigl(\mathcal{P}_{1} + \mathcal{P}_{2} - \mathcal{P}_{3}-\mathcal{P}_{4}\Bigr)  & S>K_{4} \\
+  K_{2} - S + \Bigl(\mathcal{P}_{1} + \mathcal{P}_{2} - \mathcal{P}_{3}-\mathcal{P}_{4}\Bigr)  & K_{2}<S<K_{4} \\
+  \Bigl(\mathcal{P}_{1} + \mathcal{P}_{2} - \mathcal{P}_{3}-\mathcal{P}_{4}\Bigr) & K_{1}\leq{S}\leq{K_{2}} \\
+  S - K_{1} + \Bigl(\mathcal{P}_{1} + \mathcal{P}_{2} - \mathcal{P}_{3}-\mathcal{P}_{4}\Bigr) & K_{3}<S<K_{1} \\
+  K_{3} - K_{1} + \Bigl(\mathcal{P}_{1} + \mathcal{P}_{2} - \mathcal{P}_{3}-\mathcal{P}_{4}\Bigr) & S<K_{3}
+\end{cases}$$
+"""
+
+# ╔═╡ 54d124f7-f8e7-4256-962a-44b79aa3c913
+md"""
+##### Break-even points
+An [iron condor](https://www.investopedia.com/terms/i/ironcondor.asp) has two break-even points $S^{+}$ and $S^{1}$ where we know that $K_{2}<S^{+}<K_{4}$ and $K_{3}<S^{-}<K_{1}$. The low break-even point $S^{-}$ is given by:
+
+$$S^{-} = K_{1} - \Bigl(\mathcal{P}_{1} + \mathcal{P}_{2} - \mathcal{P}_{3}-\mathcal{P}_{4}\Bigr)$$
+
+while the high break-even point $S^{+}$ is given by:
+
+$$S^{+} = K_{2} + \Bigl(\mathcal{P}_{1} + \mathcal{P}_{2} - \mathcal{P}_{3}-\mathcal{P}_{4}\Bigr)$$
+
 """
 
 # ╔═╡ f9c935d2-2f21-49c0-a93d-93cd548bbee9
@@ -74,8 +115,8 @@ md"""
 ### Results
 """
 
-# ╔═╡ 88b6e582-f73a-4712-983d-09ec3fc70c31
-let
+# ╔═╡ 2c6c7867-d120-490f-a5a8-0dbcb2bdf5a4
+begin
 
 	# setup data
 	# Current date and time: 08/07/2022 at 1:04 PM ITH
@@ -95,6 +136,14 @@ let
 	𝒫₂ = 2.00 # 2 short call
 	𝒫₃ = 0.60 # 3 long put
 	𝒫₄ = 1.03 # 4 long call
+
+	# show -
+	nothing
+	
+end
+
+# ╔═╡ 88b6e582-f73a-4712-983d-09ec3fc70c31
+let
 
 	# Setup tickers -
 	T₁ = ticker("P", "AMD", D, K₁)
@@ -174,6 +223,19 @@ let
 	# uncomment me to save fig to a file -
 	# filename = "Fig-MU-Profit-IronCondor.pdf"
 	# savefig(joinpath(_PATH_TO_FIGS, filename))
+end
+
+# ╔═╡ b121913c-4749-4c4a-985d-5c0847bcfd98
+begin
+
+	# compute the break-even points for the IC -
+	S⁻ = K₁ - (𝒫₁ + 𝒫₂ - 𝒫₃ - 𝒫₄)
+	S⁺ = K₂ + (𝒫₁ + 𝒫₂ - 𝒫₃ - 𝒫₄)
+
+	# display -
+	with_terminal() do
+		println("Low break-even: S⁻ = $(S⁻) USD/share and high break-even: S⁺ = $(S⁺) USD/share")
+	end
 end
 
 # ╔═╡ 7c4bee81-2dc7-4697-9c89-81ff78240886
@@ -1377,11 +1439,15 @@ version = "0.9.1+5"
 # ╟─91bcd93b-c058-4308-8e5a-5a46a80eba08
 # ╟─b4fc44c0-e534-41d6-b1eb-1d1093489b29
 # ╟─5c4776d1-6c0c-4309-8575-a5d14e6de504
+# ╟─be2839a0-ee92-41dc-88fa-5eb1bc047bf8
+# ╟─54d124f7-f8e7-4256-962a-44b79aa3c913
 # ╟─f9c935d2-2f21-49c0-a93d-93cd548bbee9
 # ╠═6ad7d50c-2e57-478a-b67f-f4e8657c61fe
 # ╠═4b408447-be18-4036-89cc-737245606f15
 # ╟─517ec9bb-2301-4d55-a10d-86ea6a03eb43
-# ╠═88b6e582-f73a-4712-983d-09ec3fc70c31
+# ╠═2c6c7867-d120-490f-a5a8-0dbcb2bdf5a4
+# ╟─88b6e582-f73a-4712-983d-09ec3fc70c31
+# ╟─b121913c-4749-4c4a-985d-5c0847bcfd98
 # ╟─7c4bee81-2dc7-4697-9c89-81ff78240886
 # ╟─245ee350-1649-11ed-30f5-e3b5c63b3a57
 # ╟─00000000-0000-0000-0000-000000000001
