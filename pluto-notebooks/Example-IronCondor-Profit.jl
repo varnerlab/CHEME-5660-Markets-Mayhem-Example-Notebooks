@@ -11,9 +11,9 @@ begin
 	using Plots
 	using DataFrames
 	using Dates
-	using PQEcolaPoint
 	using Colors
 	using PlutoUI
+	using PQEcolaPoint
 	
 	# setup paths -
 	const _PATH_TO_ROOT = pwd()
@@ -75,7 +75,106 @@ md"""
 """
 
 # ╔═╡ 88b6e582-f73a-4712-983d-09ec3fc70c31
+let
 
+	# setup data
+	# Current date and time: 08/07/2022 at 1:04 PM ITH
+	# Current MU share price: 62.46
+
+	# expiration -
+	D = Date(2022, 10, 21)
+	
+	# Strikes -
+	K₁ = 50.0 # 1 short put 
+	K₂ = 70.0 # 2 short call
+	K₃ = 45.0 # 3 long put
+	K₄ = 75.0 # 4 long call
+
+	# Option prices -
+	𝒫₁ = 1.09 # 1 short put 
+	𝒫₂ = 2.00 # 2 short call
+	𝒫₃ = 0.60 # 3 long put
+	𝒫₄ = 1.03 # 4 long call
+
+	# Setup tickers -
+	T₁ = ticker("P", "AMD", D, K₁)
+	T₂ = ticker("C", "AMD", D, K₂)
+	T₃ = ticker("P", "AMD", D, K₃)
+	T₄ = ticker("C", "AMD", D, K₄)
+
+	# build contract models -
+	short_put_contract_model =  build(PutContractModel, (
+    	ticker = T₁,
+    	expiration_date = D,
+    	strike_price = K₁,
+    	premium = 𝒫₁,
+    	number_of_contracts = 1,
+    	direction = -1,
+    	current_price = 0.0
+	));
+
+	short_call_contract_model =  build(CallContractModel, (
+    	ticker = T₂,
+    	expiration_date = D,
+    	strike_price = K₂,
+    	premium = 𝒫₂,
+    	number_of_contracts = 1,
+    	direction = -1,
+    	current_price = 0.0
+	));
+
+	long_put_contract_model =  build(PutContractModel, (
+    	ticker = T₃,
+    	expiration_date = D,
+    	strike_price = K₃,
+    	premium = 𝒫₃,
+    	number_of_contracts = 1,
+    	direction = 1,
+    	current_price = 0.0
+	));
+
+	long_call_contract_model =  build(CallContractModel, (
+    	ticker = T₄,
+    	expiration_date = D,
+    	strike_price = K₄,
+    	premium = 𝒫₄,
+    	number_of_contracts = 1,
+    	direction = 1,
+    	current_price = 0.0
+	));
+
+	# build model -
+	iron_condor_contract_array = Array{AbstractAssetModel,1}()
+	push!(iron_condor_contract_array, short_put_contract_model)
+	push!(iron_condor_contract_array, short_call_contract_model)
+	push!(iron_condor_contract_array, long_put_contract_model)
+	push!(iron_condor_contract_array, long_call_contract_model)
+	
+	# setup the underlying -
+	L = 1000
+	underlying_range = range(40.0, stop = 80.0, length = L) |> collect
+	
+	# compute the table -
+	dt = expiration(iron_condor_contract_array, underlying_range)
+
+	# zero line -
+	Z = zeros(L)
+
+	# plot -
+	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:topright, lw=3, 
+		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent, ylim=(-7,8))
+	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=1)
+	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="short call K=$(K₂)", ls=:dash, lw=1)
+	plot!(dt[!,:S], dt[!, "profit_$(T₃)"], c=:red, label="long put K=$(K₃)", lw=1)
+	plot!(dt[!,:S], dt[!, "profit_$(T₄)"], c=:blue, label="long call K=$(K₄)", lw=1)
+	plot!(dt[!,:S], Z, c=colorant"#6EB43F", label="break-even", lw=2)
+	xlabel!("Underlying price MU (USD/share)", fontsize=18)
+	ylabel!("Profit (USD/share)", fontsize=18)
+
+	# uncomment me to save fig to a file -
+	# filename = "Fig-MU-Profit-IronCondor.pdf"
+	# savefig(joinpath(_PATH_TO_FIGS, filename))
+end
 
 # ╔═╡ 7c4bee81-2dc7-4697-9c89-81ff78240886
 md"""
@@ -118,7 +217,7 @@ PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 [compat]
 Colors = "~0.12.8"
 DataFrames = "~1.3.4"
-PQEcolaPoint = "~0.1.1"
+PQEcolaPoint = "~0.1.2"
 Plots = "~1.31.5"
 PlutoUI = "~0.7.39"
 """
@@ -129,7 +228,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0-rc3"
 manifest_format = "2.0"
-project_hash = "fd8b751658034b4b636b7e88481765c30ca7e5d9"
+project_hash = "3b89d4f58e19af159525cdc88a18982344695c52"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -166,9 +265,9 @@ version = "1.0.8+0"
 
 [[deps.CSV]]
 deps = ["CodecZlib", "Dates", "FilePathsBase", "InlineStrings", "Mmap", "Parsers", "PooledArrays", "SentinelArrays", "Tables", "Unicode", "WeakRefStrings"]
-git-tree-sha1 = "49f14b6c56a2da47608fe30aed711b5882264d7a"
+git-tree-sha1 = "873fb188a4b9d76549b81465b1f75c82aaf59238"
 uuid = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
-version = "0.9.11"
+version = "0.10.4"
 
 [[deps.Cairo_jll]]
 deps = ["Artifacts", "Bzip2_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "JLLWrappers", "LZO_jll", "Libdl", "Pixman_jll", "Pkg", "Xorg_libXext_jll", "Xorg_libXrender_jll", "Zlib_jll", "libpng_jll"]
@@ -754,9 +853,9 @@ version = "0.11.16"
 
 [[deps.PQEcolaPoint]]
 deps = ["BSON", "CSV", "DataFrames", "Dates", "Distributions", "LinearAlgebra", "Plots", "StatsBase"]
-git-tree-sha1 = "e23b9a55844e1e455abb9c794fc1f40bb87ae8fc"
+git-tree-sha1 = "c85126434c68e820c42f160ce42866fe75646fe6"
 uuid = "6e0fd8a8-0703-4e38-9954-b94da054c472"
-version = "0.1.1"
+version = "0.1.2"
 
 [[deps.Parsers]]
 deps = ["Dates"]
