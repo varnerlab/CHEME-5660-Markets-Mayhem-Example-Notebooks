@@ -231,7 +231,7 @@ begin
 	# sort the data (newest data on top)
 	𝒫 = sort(price_df, [order(:timestamp, rev=true), :close]);
 	m′ = 74 # number of days to 10/21
-	number_of_sample_paths = 1000
+	number_of_sample_paths = 10000
 	number_of_time_steps = m′
 	time_final = m′
 	T = range(0, stop=time_final, length=number_of_time_steps) |> collect
@@ -260,22 +260,91 @@ begin
 	nothing
 end
 
+# ╔═╡ 6bfc43c9-01af-4b2e-b6ff-4f5213aba590
+let
+	histogram(X[end,:], bins=250, label="AMD simulation", c=colorant"#55565A", lc=colorant"#55565A",
+		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
+	xlabel!("Simulation AMD close price on 10/21/22", fontsize=18)
+	ylabel!("Count (10K samples, 250 bins)", fontsize=18)
+end
+
+# ╔═╡ 2d4343b4-6599-4751-bc8f-a482f527f4af
+let
+
+	# compute cumalative distribution -
+	L = 2000
+	p_array = Array{Float64,1}(undef, L)
+	
+	# setup the underlying -
+	underlying_range = range(40.0, stop = 200.0, length = L) |> collect 
+	for i ∈ 1:L
+		p_array[i] = probability(X[end,:], x->x<underlying_range[i])
+	end
+
+	# plot -
+	plot(underlying_range, p_array, lw=3, c=colorant"#B31B1B", label="Simulated probability (N=10K)",
+		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent, 
+		legend=:bottomright, xlim=(30.0,220.0))
+	xlabel!("Simulation AMD close price on 10/21/22", fontsize=18)
+	ylabel!("Probability P(X<S)", fontsize=18)
+end
+
 # ╔═╡ 130d3ee5-0db2-4120-a2ee-15f2c360ac70
 md"""
 ### Compute probability conditions
 """
 
+# ╔═╡ ed8641c0-4874-4df8-be81-33e4895b3098
+md"""
+###### Case I: $P(X<S^{+})$
+In this case, we compute the probability, which we denote as $p^{+}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close at expiration less than the high-break even price $S^{+}$:
+"""
+
 # ╔═╡ bb232aa1-f7a3-4cea-b0ab-79ba8ff084bf
 p⁺ = probability(X[end,:], x->x<S⁺)
+
+# ╔═╡ 8b9366e4-e311-4e8d-af68-e783956cb936
+md"""
+###### Case II: $P(X>S^{-})$
+In this case, we compute the probability, which we denote as $p^{-}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close above the low-break even price $S^{+}$ at expiration. 
+"""
 
 # ╔═╡ e269e59d-31a9-4ea5-a0fd-137258631899
 p⁻ = probability(X[end,:], x->x>S⁻)
 
+# ╔═╡ e3c7093c-2de3-4549-9480-8e8aed92b2b5
+md"""
+###### Case III: $P(X>K_{1})$
+In this case, we compute the probability, which we denote as $p_{1}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close above the strike price for the short leg of the strangle $K_{1}$ at expiration: 
+"""
+
 # ╔═╡ b8588b61-994e-4329-8203-558e9e78e1c5
 p₁ = probability(X[end,:], x->x>K₁) 
 
+# ╔═╡ cd249d6b-eca9-414f-a546-124d92ebd89f
+md"""
+###### Case IV: $P(X<K_{2})$
+In this case, we compute the probability, which we denote as $p_{2}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close below the strike price of the short call price $K_{2}$ at expiration. 
+"""
+
 # ╔═╡ 7ab65fb7-1b18-42dc-a6a3-cf743aa2a399
 p₂ = probability(X[end,:], x->x<K₂) 
+
+# ╔═╡ 6fe8ea61-aa3d-447a-a526-ce511e56c320
+md"""
+###### Case V: $P(K_{1}<X\leq{K_{2}})$
+In this case, we compute the probability, which we denote as $p^{\star}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close between the short put and call strikes at expiration (max profit condition) 
+"""
+
+# ╔═╡ 72df49e5-c79c-45bf-854f-5fd9442878e1
+begin
+
+	a = 1 - probability(X[end,:], x->x<K₁)
+	b = probability(X[end,:], x->x<=K₂) 
+
+	pstar = b - a
+	
+end
 
 # ╔═╡ 32eae6ff-8715-45db-ad12-4f70b1944489
 md"""
@@ -1648,11 +1717,19 @@ version = "0.9.1+5"
 # ╠═95f6cd94-27c6-4397-9d64-3127c997821e
 # ╠═4cf7f697-d733-4a23-9f61-546409e608c9
 # ╠═683ccb45-d6b9-4e98-8e6e-839ae0d5d8ae
+# ╠═6bfc43c9-01af-4b2e-b6ff-4f5213aba590
+# ╟─2d4343b4-6599-4751-bc8f-a482f527f4af
 # ╟─130d3ee5-0db2-4120-a2ee-15f2c360ac70
+# ╟─ed8641c0-4874-4df8-be81-33e4895b3098
 # ╠═bb232aa1-f7a3-4cea-b0ab-79ba8ff084bf
+# ╟─8b9366e4-e311-4e8d-af68-e783956cb936
 # ╠═e269e59d-31a9-4ea5-a0fd-137258631899
+# ╟─e3c7093c-2de3-4549-9480-8e8aed92b2b5
 # ╠═b8588b61-994e-4329-8203-558e9e78e1c5
+# ╟─cd249d6b-eca9-414f-a546-124d92ebd89f
 # ╠═7ab65fb7-1b18-42dc-a6a3-cf743aa2a399
+# ╟─6fe8ea61-aa3d-447a-a526-ce511e56c320
+# ╠═72df49e5-c79c-45bf-854f-5fd9442878e1
 # ╟─32eae6ff-8715-45db-ad12-4f70b1944489
 # ╟─f462f171-3ede-49f5-9ba1-71fa2b0ed479
 # ╟─00000000-0000-0000-0000-000000000001
