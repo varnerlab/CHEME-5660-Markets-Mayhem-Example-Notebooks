@@ -15,11 +15,15 @@ begin
 	using Colors
 	using PlutoUI
 	using JLD2
+	using CSV
+	using Statistics
+	using Distributions
+	using StatsPlots
 	
 	# setup paths -
 	const _PATH_TO_ROOT = pwd()
 	const _PATH_TO_FIGS = joinpath(_PATH_TO_ROOT, "figs")
-	const _PATH_TO_DIR = joinpath(pwd(), "data")
+	const _PATH_TO_DATA = joinpath(_PATH_TO_ROOT, "data")
 
 	# show -
 	nothing
@@ -71,10 +75,207 @@ function ticker(type::String, underlying::String, expiration::Date, K::Float64):
     return ticker_string
 end;
 
+# ╔═╡ 1a1af228-7403-4e52-b78b-7fed469b28e4
+function compute_drift_and_volatility(data::DataFrame; m::Int64 = 30)::Tuple{Float64, Float64, Float64}
+
+	# sort the data (newest data on top)
+	𝒫 = sort(data, [order(:timestamp, rev=true), :close]);
+	
+	# initialize -
+	n = m + 2
+	R = Array{Float64,1}(undef,m)
+	μᵣ = 0.0
+	tmp = 0.0
+
+	# compute R -
+	for i ∈ 1:m
+		# compute the log return - and capture
+		R[i] = log(𝒫[n-i,:close]/𝒫[n-i - 1,:close])
+	end
+
+	# compute the average - we are going to borrow the Julia mean function in the Statistics package
+	μᵣ = mean(R)
+
+	# compute the variance -
+	for i ∈ 1:m
+		tmp = tmp + (R[i] - μᵣ)^2
+	end
+	variance = (1/(m-1))*tmp
+
+	return (μᵣ, sqrt(variance), 𝒫[m,:close])
+end;
+
+
+# ╔═╡ d12a4f3d-ca0e-40d1-8042-5339ac0293f8
+function probability(data::Array{Float64,1}, rule::Function)::Float64
+
+	N = length(data)
+	tmp_array = Array{Bool,1}(undef,N)
+	for i ∈ 1:N
+		tmp_array[i] = rule(data[i])
+	end
+
+	# how many true?
+	N_true = length(findall(x->x==true, tmp_array))
+
+	return (N_true/N)
+end
+
 # ╔═╡ 1df8a7b3-a3b0-4028-bf60-3aad03c6433e
 md"""
 ### Results
 """
+
+# ╔═╡ ee791075-15ee-4b04-9338-8a333b407a20
+begin
+
+	# setup data
+	# Current date and time: 08/08/2022 at 6:25 AM ITH
+	# Current AMD share price: 102.53
+
+	# expiration -
+	D = Date(2022, 10, 21)
+	
+	# Strikes -
+	K₁ = 80.0 # 1 short put 
+	K₂ = 120.0 # 2 short call
+
+	# Option prices -
+	𝒫₁ = 1.69 # 1 short put 
+	𝒫₂ = 2.97 # 2 short call
+
+	# show -
+	nothing	
+end
+
+# ╔═╡ 6cf025f8-480a-4d1e-8fd9-3d87188de27b
+md"""
+#### Compute the Short Strangle
+"""
+
+# ╔═╡ b9523b06-8efd-4229-8032-cb53a63b6fc2
+md"""
+##### Break even points
+"""
+
+# ╔═╡ 2bdf8b39-0dee-46af-96f7-46fe9fb97339
+begin
+
+	# compute break-even points -
+	S⁻ = K₁ - (𝒫₁ + 𝒫₂)
+	S⁺ = K₂ + (𝒫₁ + 𝒫₂)
+
+	# display -
+	with_terminal() do
+		println("Low break-even: S⁻ = $(S⁻) USD/share and high break-even: S⁺ = $(S⁺) USD/share")
+	end
+end
+
+# ╔═╡ 2d867536-4ded-4f4f-a5c5-168ce7de4d73
+let
+
+	# Setup tickers -
+	T₁ = ticker("P", "AMD", D, K₁)
+	T₂ = ticker("C", "AMD", D, K₂)
+
+	# build contract models -
+	short_put_contract_model =  build(PutContractModel, (
+    	ticker = T₁,
+    	expiration_date = D,
+    	strike_price = K₁,
+    	premium = 𝒫₁,
+    	number_of_contracts = 1,
+    	direction = -1,
+    	current_price = 0.0
+	));
+
+	short_call_contract_model =  build(CallContractModel, (
+    	ticker = T₂,
+    	expiration_date = D,
+    	strike_price = K₂,
+    	premium = 𝒫₂,
+    	number_of_contracts = 1,
+    	direction = -1,
+    	current_price = 0.0
+	));
+
+	# build model -
+	contract_array = Array{AbstractAssetModel,1}()
+	push!(contract_array, short_put_contract_model)
+	push!(contract_array, short_call_contract_model)
+	
+	# setup the underlying -
+	L = 1000
+	underlying_range = range(70.0, stop = 130.0, length = L) |> collect
+	
+	# compute the table -
+	dt = expiration(contract_array, underlying_range)
+
+	# show -
+	nothing
+end
+
+# ╔═╡ 95f6cd94-27c6-4397-9d64-3127c997821e
+price_df = CSV.read(joinpath(_PATH_TO_DATA, "AMD-OCHL-from-05-07-22-to-2022-08-05.csv"), DataFrame)
+
+# ╔═╡ 4cf7f697-d733-4a23-9f61-546409e608c9
+begin
+	m = 45
+	(μ, σ, Xₒ) = compute_drift_and_volatility(price_df; m=m); # compute the daily return and volatility 
+end
+
+# ╔═╡ 683ccb45-d6b9-4e98-8e6e-839ae0d5d8ae
+begin
+
+	# initialize -
+	# sort the data (newest data on top)
+	𝒫 = sort(price_df, [order(:timestamp, rev=true), :close]);
+	m′ = 74 # number of days to 10/21
+	number_of_sample_paths = 1000
+	number_of_time_steps = m′
+	time_final = m′
+	T = range(0, stop=time_final, length=number_of_time_steps) |> collect
+	X = Array{Float64,2}(undef, number_of_time_steps, number_of_sample_paths)
+	Δt = T[2] - T[1]
+	
+	# set the initial condition (for all sample paths) -
+	X[1,:] .= 𝒫[1, :close] # pick the last close price
+
+	# pre-initialize random variable noise term -
+	d = Normal(0,1)
+	ZM = rand(d, number_of_time_steps, number_of_sample_paths)
+
+	# main simulation loop -
+	for s ∈ 1:number_of_sample_paths
+		for t ∈ 1:number_of_time_steps-1
+			X[t+1,s] = X[t,s]*exp((μ - (σ^2)/2)*Δt+(σ*√Δt)*ZM[t,s])
+		end
+	end
+
+	# calculate some stats from X -
+	XM = mean(X,dims=2);
+	σ_mc = std(X,dims=2)
+	
+	# show -
+	nothing
+end
+
+# ╔═╡ 130d3ee5-0db2-4120-a2ee-15f2c360ac70
+md"""
+### Compute probability conditions
+"""
+
+# ╔═╡ bb232aa1-f7a3-4cea-b0ab-79ba8ff084bf
+p⁺ = probability(X[end,:], x->x<S⁺)
+
+# ╔═╡ e269e59d-31a9-4ea5-a0fd-137258631899
+p⁻ = probability(X[end,:], x->x>S⁻)
+
+# ╔═╡ b8588b61-994e-4329-8203-558e9e78e1c5
+p₁ = probability(X[end,:], x->x>K₁) 
+
+# ╔═╡ 7ab65fb7-1b18-42dc-a6a3-cf743aa2a399
+p₂ = probability(X[end,:], x->x<K₂) 
 
 # ╔═╡ 32eae6ff-8715-45db-ad12-4f70b1944489
 md"""
@@ -107,21 +308,28 @@ a {
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 PQEcolaPoint = "6e0fd8a8-0703-4e38-9954-b94da054c472"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
 
 [compat]
+CSV = "~0.10.4"
 Colors = "~0.12.8"
 DataFrames = "~1.3.4"
+Distributions = "~0.25.66"
 JLD2 = "~0.4.22"
 PQEcolaPoint = "~0.1.2"
 Plots = "~1.31.5"
 PlutoUI = "~0.7.39"
+StatsPlots = "~0.15.1"
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000002
@@ -130,7 +338,13 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0-rc3"
 manifest_format = "2.0"
-project_hash = "084de4dd674681b76c9a8409f0e96553b667d204"
+project_hash = "0e97e53c8e1cc1555505e59efb4ac7c372fb4d5d"
+
+[[deps.AbstractFFTs]]
+deps = ["ChainRulesCore", "LinearAlgebra"]
+git-tree-sha1 = "69f7020bd72f069c219b5e8c236c1fa90d2cb409"
+uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
+version = "1.2.1"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -148,8 +362,26 @@ version = "3.4.0"
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 version = "1.1.1"
 
+[[deps.Arpack]]
+deps = ["Arpack_jll", "Libdl", "LinearAlgebra", "Logging"]
+git-tree-sha1 = "91ca22c4b8437da89b030f08d71db55a379ce958"
+uuid = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
+version = "0.5.3"
+
+[[deps.Arpack_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "OpenBLAS_jll", "Pkg"]
+git-tree-sha1 = "5ba6c757e8feccf03a1554dfaf3e26b3cfc7fd5e"
+uuid = "68821587-b530-5797-8361-c406ea357684"
+version = "3.5.1+1"
+
 [[deps.Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
+
+[[deps.AxisAlgorithms]]
+deps = ["LinearAlgebra", "Random", "SparseArrays", "WoodburyMatrices"]
+git-tree-sha1 = "66771c8d21c8ff5e3a93379480a2307ac36863f7"
+uuid = "13072b0f-2c55-5437-9ae7-d433b7a33950"
+version = "1.0.1"
 
 [[deps.BSON]]
 git-tree-sha1 = "306bb5574b0c1c56d7e1207581516c557d105cad"
@@ -194,6 +426,12 @@ deps = ["ChainRulesCore", "LinearAlgebra", "Test"]
 git-tree-sha1 = "38f7a08f19d8810338d4f5085211c7dfa5d5bdd8"
 uuid = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
 version = "0.1.4"
+
+[[deps.Clustering]]
+deps = ["Distances", "LinearAlgebra", "NearestNeighbors", "Printf", "SparseArrays", "Statistics", "StatsBase"]
+git-tree-sha1 = "75479b7df4167267d75294d14b58244695beb2ac"
+uuid = "aaaa29a8-35af-508c-8bc3-b662a17a0fe5"
+version = "0.14.2"
 
 [[deps.CodecZlib]]
 deps = ["TranscodingStreams", "Zlib_jll"]
@@ -268,6 +506,12 @@ git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
 uuid = "e2d170a0-9d28-54be-80f0-106bbe20a464"
 version = "1.0.0"
 
+[[deps.DataValues]]
+deps = ["DataValueInterfaces", "Dates"]
+git-tree-sha1 = "d88a19299eba280a6d062e135a43f00323ae70bf"
+uuid = "e7dc6d0d-1eca-5fa6-8ad6-5aecde8b7ea5"
+version = "0.4.13"
+
 [[deps.Dates]]
 deps = ["Printf"]
 uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
@@ -281,6 +525,12 @@ deps = ["InverseFunctions", "Test"]
 git-tree-sha1 = "80c3e8639e3353e5d2912fb3a1916b8455e2494b"
 uuid = "b429d917-457f-4dbc-8f4c-0cc954292b1d"
 version = "0.4.0"
+
+[[deps.Distances]]
+deps = ["LinearAlgebra", "SparseArrays", "Statistics", "StatsAPI"]
+git-tree-sha1 = "3258d0659f812acde79e8a74b11f17ac06d0ca04"
+uuid = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
+version = "0.10.7"
 
 [[deps.Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
@@ -337,6 +587,18 @@ deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "JLLWrappers",
 git-tree-sha1 = "ccd479984c7838684b3ac204b716c89955c76623"
 uuid = "b22a6f82-2f65-5046-a5b2-351ab43fb4e5"
 version = "4.4.2+0"
+
+[[deps.FFTW]]
+deps = ["AbstractFFTs", "FFTW_jll", "LinearAlgebra", "MKL_jll", "Preferences", "Reexport"]
+git-tree-sha1 = "90630efff0894f8142308e334473eba54c433549"
+uuid = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+version = "1.5.0"
+
+[[deps.FFTW_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "c6033cc3892d0ef5bb9cd29b7f2f0331ea5184ea"
+uuid = "f5851436-0d7a-5f13-b9de-f02708fd171a"
+version = "3.3.10+0"
 
 [[deps.FileIO]]
 deps = ["Pkg", "Requires", "UUIDs"]
@@ -493,9 +755,21 @@ git-tree-sha1 = "d19f9edd8c34760dca2de2b503f969d8700ed288"
 uuid = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
 version = "1.1.4"
 
+[[deps.IntelOpenMP_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "d979e54b71da82f3a65b62553da4fc3d18c9004c"
+uuid = "1d5cc7b8-4909-519e-a0f8-d0f5ad9712d0"
+version = "2018.0.3+2"
+
 [[deps.InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
+
+[[deps.Interpolations]]
+deps = ["Adapt", "AxisAlgorithms", "ChainRulesCore", "LinearAlgebra", "OffsetArrays", "Random", "Ratios", "Requires", "SharedArrays", "SparseArrays", "StaticArrays", "WoodburyMatrices"]
+git-tree-sha1 = "23e651bbb8d00e9971015d0dd306b780edbdb6b9"
+uuid = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
+version = "0.14.3"
 
 [[deps.InverseFunctions]]
 deps = ["Test"]
@@ -547,6 +821,12 @@ git-tree-sha1 = "b53380851c6e6664204efb2e62cd24fa5c47e4ba"
 uuid = "aacddb02-875f-59d6-b918-886e6ef4fbf8"
 version = "2.1.2+0"
 
+[[deps.KernelDensity]]
+deps = ["Distributions", "DocStringExtensions", "FFTW", "Interpolations", "StatsBase"]
+git-tree-sha1 = "9816b296736292a80b9a3200eb7fbb57aaa3917a"
+uuid = "5ab0869b-81aa-558d-bb23-cbf5423bbe9b"
+version = "0.6.5"
+
 [[deps.LAME_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "f6250b16881adf048549549fba48b1161acdac8c"
@@ -575,6 +855,10 @@ deps = ["Formatting", "InteractiveUtils", "LaTeXStrings", "MacroTools", "Markdow
 git-tree-sha1 = "1a43be956d433b5d0321197150c2f94e16c0aaa0"
 uuid = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
 version = "0.15.16"
+
+[[deps.LazyArtifacts]]
+deps = ["Artifacts", "Pkg"]
+uuid = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
 
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
@@ -665,6 +949,12 @@ git-tree-sha1 = "5d4d2d9904227b8bd66386c1138cf4d5ffa826bf"
 uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 version = "0.4.9"
 
+[[deps.MKL_jll]]
+deps = ["Artifacts", "IntelOpenMP_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "Pkg"]
+git-tree-sha1 = "e595b205efd49508358f7dc670a940c790204629"
+uuid = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
+version = "2022.0.0+0"
+
 [[deps.MacroTools]]
 deps = ["Markdown", "Random"]
 git-tree-sha1 = "3d3e902b31198a27340d0bf00d6ac452866021cf"
@@ -704,15 +994,38 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 version = "2022.2.1"
 
+[[deps.MultivariateStats]]
+deps = ["Arpack", "LinearAlgebra", "SparseArrays", "Statistics", "StatsBase"]
+git-tree-sha1 = "6d019f5a0465522bbfdd68ecfad7f86b535d6935"
+uuid = "6f286f6a-111f-5878-ab1e-185364afe411"
+version = "0.9.0"
+
 [[deps.NaNMath]]
 deps = ["OpenLibm_jll"]
 git-tree-sha1 = "a7c3d1da1189a1c2fe843a3bfa04d18d20eb3211"
 uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
 version = "1.0.1"
 
+[[deps.NearestNeighbors]]
+deps = ["Distances", "StaticArrays"]
+git-tree-sha1 = "0e353ed734b1747fc20cd4cba0edd9ac027eff6a"
+uuid = "b8a86587-4115-5ab1-83bc-aa920d37bbce"
+version = "0.4.11"
+
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 version = "1.2.0"
+
+[[deps.Observables]]
+git-tree-sha1 = "dfd8d34871bc3ad08cd16026c1828e271d554db9"
+uuid = "510215fc-4207-5dde-b226-833fc4488ee2"
+version = "0.5.1"
+
+[[deps.OffsetArrays]]
+deps = ["Adapt"]
+git-tree-sha1 = "1ea784113a6aa054c5ebd95945fa5e52c2f378e7"
+uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
+version = "1.12.7"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -854,6 +1167,12 @@ uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 deps = ["SHA", "Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
+[[deps.Ratios]]
+deps = ["Requires"]
+git-tree-sha1 = "dc84268fe0e3335a62e315a3a7cf2afa7178a734"
+uuid = "c84ed2f1-dad5-54f0-aa8e-dbefe2724439"
+version = "0.4.3"
+
 [[deps.RecipesBase]]
 git-tree-sha1 = "6bf3f380ff52ce0832ddd3a2a7b9538ed1bcca7d"
 uuid = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
@@ -980,6 +1299,12 @@ git-tree-sha1 = "5783b877201a82fc0014cbf381e7e6eb130473a4"
 uuid = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
 version = "1.0.1"
 
+[[deps.StatsPlots]]
+deps = ["AbstractFFTs", "Clustering", "DataStructures", "DataValues", "Distributions", "Interpolations", "KernelDensity", "LinearAlgebra", "MultivariateStats", "Observables", "Plots", "RecipesBase", "RecipesPipeline", "Reexport", "StatsBase", "TableOperations", "Tables", "Widgets"]
+git-tree-sha1 = "2b35ba790f1f823872dcf378a6d3c3b520092eac"
+uuid = "f3b207a7-027a-5e70-b257-86293d7955fd"
+version = "0.15.1"
+
 [[deps.StructArrays]]
 deps = ["Adapt", "DataAPI", "StaticArrays", "Tables"]
 git-tree-sha1 = "ec47fb6069c57f1cee2f67541bf8f23415146de7"
@@ -994,6 +1319,12 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 version = "1.0.0"
+
+[[deps.TableOperations]]
+deps = ["SentinelArrays", "Tables", "Test"]
+git-tree-sha1 = "e383c87cf2a1dc41fa30c093b2a19877c83e1bc1"
+uuid = "ab02a1b2-a7df-11e8-156e-fb1833f50b87"
+version = "1.2.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -1073,6 +1404,18 @@ deps = ["DataAPI", "InlineStrings", "Parsers"]
 git-tree-sha1 = "b1be2855ed9ed8eac54e5caff2afcdb442d52c23"
 uuid = "ea10d353-3f73-51f8-a26c-33c1cb351aa5"
 version = "1.4.2"
+
+[[deps.Widgets]]
+deps = ["Colors", "Dates", "Observables", "OrderedCollections"]
+git-tree-sha1 = "fcdae142c1cfc7d89de2d11e08721d0f2f86c98a"
+uuid = "cc8bc4a8-27d6-5769-a93b-9d913e69aa62"
+version = "0.6.6"
+
+[[deps.WoodburyMatrices]]
+deps = ["LinearAlgebra", "SparseArrays"]
+git-tree-sha1 = "de67fa59e33ad156a590055375a30b23c40299d3"
+uuid = "efce3f68-66dc-5838-9240-27a6d6f5f9b6"
+version = "0.5.5"
 
 [[deps.XML2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Libiconv_jll", "Pkg", "Zlib_jll"]
@@ -1294,7 +1637,22 @@ version = "0.9.1+5"
 # ╟─7b4c47fa-4f3d-4058-90a0-99fb165c55f1
 # ╠═396f554e-917a-4308-8474-5882b873f608
 # ╠═bc4433e4-e9b4-42a5-8b9c-22a67d89e164
+# ╠═1a1af228-7403-4e52-b78b-7fed469b28e4
+# ╠═d12a4f3d-ca0e-40d1-8042-5339ac0293f8
 # ╟─1df8a7b3-a3b0-4028-bf60-3aad03c6433e
+# ╠═ee791075-15ee-4b04-9338-8a333b407a20
+# ╟─6cf025f8-480a-4d1e-8fd9-3d87188de27b
+# ╟─b9523b06-8efd-4229-8032-cb53a63b6fc2
+# ╠═2bdf8b39-0dee-46af-96f7-46fe9fb97339
+# ╠═2d867536-4ded-4f4f-a5c5-168ce7de4d73
+# ╠═95f6cd94-27c6-4397-9d64-3127c997821e
+# ╠═4cf7f697-d733-4a23-9f61-546409e608c9
+# ╠═683ccb45-d6b9-4e98-8e6e-839ae0d5d8ae
+# ╟─130d3ee5-0db2-4120-a2ee-15f2c360ac70
+# ╠═bb232aa1-f7a3-4cea-b0ab-79ba8ff084bf
+# ╠═e269e59d-31a9-4ea5-a0fd-137258631899
+# ╠═b8588b61-994e-4329-8203-558e9e78e1c5
+# ╠═7ab65fb7-1b18-42dc-a6a3-cf743aa2a399
 # ╟─32eae6ff-8715-45db-ad12-4f70b1944489
 # ╟─f462f171-3ede-49f5-9ba1-71fa2b0ed479
 # ╟─00000000-0000-0000-0000-000000000001
