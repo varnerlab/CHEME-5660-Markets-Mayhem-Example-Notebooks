@@ -282,7 +282,7 @@ let
 	end
 
 	# plot -
-	plot(underlying_range, p_array, lw=3, c=colorant"#B31B1B", label="Simulated probability (N=10K)",
+	plot(underlying_range, p_array, lw=3, c=colorant"#89CCE2", label="Simulated probability (N=10K)",
 		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent, 
 		legend=:bottomright, xlim=(30.0,220.0))
 	xlabel!("Simulation AMD close price on 10/21/22", fontsize=18)
@@ -339,9 +339,8 @@ In this case, we compute the probability, which we denote as $p^{\star}$, that [
 # ╔═╡ 72df49e5-c79c-45bf-854f-5fd9442878e1
 begin
 
-	a = 1 - probability(X[end,:], x->x<K₁)
+	a = probability(X[end,:], x->x<K₁)
 	b = probability(X[end,:], x->x<=K₂) 
-
 	pstar = b - a
 	
 end
