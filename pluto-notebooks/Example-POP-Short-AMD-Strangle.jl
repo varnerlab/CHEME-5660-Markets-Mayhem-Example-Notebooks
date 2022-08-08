@@ -287,6 +287,10 @@ let
 		legend=:bottomright, xlim=(30.0,220.0))
 	xlabel!("Simulation AMD close price on 10/21/22", fontsize=18)
 	ylabel!("Probability P(X<S)", fontsize=18)
+
+	# uncomment me to save file -
+	# filename = "Fig-AMD-CumalativeProb-N10K-D-10-21-22.pdf"
+	# savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ 130d3ee5-0db2-4120-a2ee-15f2c360ac70
@@ -1717,7 +1721,7 @@ version = "0.9.1+5"
 # ╠═4cf7f697-d733-4a23-9f61-546409e608c9
 # ╠═683ccb45-d6b9-4e98-8e6e-839ae0d5d8ae
 # ╠═6bfc43c9-01af-4b2e-b6ff-4f5213aba590
-# ╟─2d4343b4-6599-4751-bc8f-a482f527f4af
+# ╠═2d4343b4-6599-4751-bc8f-a482f527f4af
 # ╟─130d3ee5-0db2-4120-a2ee-15f2c360ac70
 # ╟─ed8641c0-4874-4df8-be81-33e4895b3098
 # ╠═bb232aa1-f7a3-4cea-b0ab-79ba8ff084bf
