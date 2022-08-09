@@ -45,6 +45,15 @@ md"""
 ### Introduction
 """
 
+# ╔═╡ 490ea0f3-396e-47c3-a161-f5d68643afb2
+md"""
+The Probability of Profit (POP) at expiration is the probability that your option position will make at least $0.01 at expiration. The probability of profit can be a helpful decision metric, e.g., investors engage in transactions with a _large_ POP and avoid low probability trades. However, the exact meaning of _large_ or _small_ depends upon the investor’s risk tolerance. 
+
+##### Strategy
+Using Monte-Carlo simulation, we can estimate the option position’s probability of Profit (POP) at expiration. 
+First, we can develop a simulation of the price of the underlying asset `XYZ,` e.g., using a geometric Brownian motion model developed from historical data, and then use that model to project the underlying price into the future until expiration. Finally, we can compute the cumulative probability curve to determine the probability that a profit condition is satisfied.
+"""
+
 # ╔═╡ 7b4c47fa-4f3d-4058-90a0-99fb165c55f1
 md"""
 ### Materials and Methods
@@ -150,12 +159,7 @@ end
 
 # ╔═╡ 6cf025f8-480a-4d1e-8fd9-3d87188de27b
 md"""
-#### Compute the Short Strangle
-"""
-
-# ╔═╡ b9523b06-8efd-4229-8032-cb53a63b6fc2
-md"""
-##### Break even points
+#### Compute the Short Strangle Break-Even Points
 """
 
 # ╔═╡ 2bdf8b39-0dee-46af-96f7-46fe9fb97339
@@ -260,11 +264,21 @@ begin
 	nothing
 end
 
-# ╔═╡ 8a1edab9-ce9b-4d24-a913-3412cae6c6c2
-mean(X[end,:])
+# ╔═╡ 8adf3988-ef4d-466a-9e1e-1a33b2afcb61
+md"""
+###### Mean and Standard Deviation Simulated Close Price on 10/21/22
+"""
 
-# ╔═╡ e2cd19dc-5c89-4ecd-836c-de5966be9606
-σ_close = std(X[end,:])
+# ╔═╡ ce5b49b0-523b-47d1-a943-26269d4849e4
+with_terminal() do
+	
+	# compute -
+	μ_close = mean(X[end,:])
+	σ_close = std(X[end,:])
+
+	# display -
+	println("mean μ_close = $(μ_close) and stddev σ_close = $(σ_close)")
+end
 
 # ╔═╡ 6bfc43c9-01af-4b2e-b6ff-4f5213aba590
 let
@@ -273,6 +287,11 @@ let
 	xlabel!("Simulation AMD close price on 10/21/22", fontsize=18)
 	ylabel!("Count (10K samples, 250 bins)", fontsize=18)
 end
+
+# ╔═╡ 781e714e-e5e7-4e99-9822-885cb2803e86
+md"""
+###### Cumulative Probability Simulated Close Price on 10/21/22
+"""
 
 # ╔═╡ 2d4343b4-6599-4751-bc8f-a482f527f4af
 let
@@ -311,16 +330,22 @@ In this case, we compute the probability, which we denote as $p^{+}$, that [AMD]
 """
 
 # ╔═╡ bb232aa1-f7a3-4cea-b0ab-79ba8ff084bf
-p⁺ = probability(X[end,:], x->x<S⁺)
+with_terminal() do
+	p⁺ = probability(X[end,:], x->x<S⁺)
+	println("p⁺ = $(p⁺)")
+end
 
 # ╔═╡ 8b9366e4-e311-4e8d-af68-e783956cb936
 md"""
-###### Case II: $P(X>S^{-})$
-In this case, we compute the probability, which we denote as $p^{-}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close above the low-break even price $S^{+}$ at expiration. 
+###### Case II: $P(X<S^{-})$
+In this case, we compute the probability, which we denote as $p^{-}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close below the low-break even price $S^{+}$ at expiration. 
 """
 
 # ╔═╡ e269e59d-31a9-4ea5-a0fd-137258631899
-p⁻ = probability(X[end,:], x->x<S⁻)
+with_terminal() do
+	p⁻ = probability(X[end,:], x->x<S⁻)
+	println("p⁻ = $(p⁻)")
+end
 
 # ╔═╡ e3c7093c-2de3-4549-9480-8e8aed92b2b5
 md"""
@@ -329,7 +354,10 @@ In this case, we compute the probability, which we denote as $p_{1}$, that [AMD]
 """
 
 # ╔═╡ b8588b61-994e-4329-8203-558e9e78e1c5
-p₁ = probability(X[end,:], x->x<K₁) 
+with_terminal() do
+	p₁ = probability(X[end,:], x->x<K₁)
+	println("p₁ = $(p₁)")
+end
 
 # ╔═╡ cd249d6b-eca9-414f-a546-124d92ebd89f
 md"""
@@ -338,7 +366,10 @@ In this case, we compute the probability, which we denote as $p_{2}$, that [AMD]
 """
 
 # ╔═╡ 7ab65fb7-1b18-42dc-a6a3-cf743aa2a399
-p₂ = probability(X[end,:], x->x<K₂) 
+with_terminal() do
+	p₂ = probability(X[end,:], x->x<K₂)
+	println("p₂ = $(p₂)")
+end
 
 # ╔═╡ 6fe8ea61-aa3d-447a-a526-ce511e56c320
 md"""
@@ -347,12 +378,37 @@ In this case, we compute the probability, which we denote as $p^{\star}$, that [
 """
 
 # ╔═╡ 72df49e5-c79c-45bf-854f-5fd9442878e1
-begin
+let
+
+	a = probability(X[end,:], x->x<K₁)
+	b = probability(X[end,:], x->x<=K₂) 
+	pstar = b - a
+
+	with_terminal() do
+		println("pstar = $(pstar)")
+	end
+	
+end
+
+# ╔═╡ e65c9460-0ac7-4778-87bb-2a8eb2af812d
+md"""
+###### Case VI: $P(S^{-}<X\leq{S^{+}})$
+In this case, we compute the probability, which we denote as $p$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close between the low and high breeak-even points (profit condition) 
+"""
+
+# ╔═╡ 232b6992-3a6c-4e0e-b32c-3031151460ae
+let
+	let
 
 	a = probability(X[end,:], x->x<S⁻)
 	b = probability(X[end,:], x->x<=S⁺) 
-	pstar = b - a
+	p = b - a
+
+	with_terminal() do
+		println("p = $(p)")
+	end
 	
+end
 end
 
 # ╔═╡ 32eae6ff-8715-45db-ad12-4f70b1944489
@@ -1712,6 +1768,7 @@ version = "0.9.1+5"
 # ╟─0890121e-1696-11ed-2c7f-d9f447b13695
 # ╟─3ba526ea-8ee0-4cb8-ba2f-b246ca5fd9d3
 # ╟─9c196ced-523f-4960-af97-74acd84bf9ec
+# ╟─490ea0f3-396e-47c3-a161-f5d68643afb2
 # ╟─7b4c47fa-4f3d-4058-90a0-99fb165c55f1
 # ╠═396f554e-917a-4308-8474-5882b873f608
 # ╠═bc4433e4-e9b4-42a5-8b9c-22a67d89e164
@@ -1720,15 +1777,15 @@ version = "0.9.1+5"
 # ╟─1df8a7b3-a3b0-4028-bf60-3aad03c6433e
 # ╠═ee791075-15ee-4b04-9338-8a333b407a20
 # ╟─6cf025f8-480a-4d1e-8fd9-3d87188de27b
-# ╟─b9523b06-8efd-4229-8032-cb53a63b6fc2
-# ╠═2bdf8b39-0dee-46af-96f7-46fe9fb97339
+# ╟─2bdf8b39-0dee-46af-96f7-46fe9fb97339
 # ╠═2d867536-4ded-4f4f-a5c5-168ce7de4d73
 # ╠═95f6cd94-27c6-4397-9d64-3127c997821e
 # ╠═4cf7f697-d733-4a23-9f61-546409e608c9
 # ╠═683ccb45-d6b9-4e98-8e6e-839ae0d5d8ae
-# ╠═8a1edab9-ce9b-4d24-a913-3412cae6c6c2
-# ╠═e2cd19dc-5c89-4ecd-836c-de5966be9606
-# ╟─6bfc43c9-01af-4b2e-b6ff-4f5213aba590
+# ╟─8adf3988-ef4d-466a-9e1e-1a33b2afcb61
+# ╟─ce5b49b0-523b-47d1-a943-26269d4849e4
+# ╠═6bfc43c9-01af-4b2e-b6ff-4f5213aba590
+# ╟─781e714e-e5e7-4e99-9822-885cb2803e86
 # ╠═2d4343b4-6599-4751-bc8f-a482f527f4af
 # ╟─130d3ee5-0db2-4120-a2ee-15f2c360ac70
 # ╟─ed8641c0-4874-4df8-be81-33e4895b3098
@@ -1741,6 +1798,8 @@ version = "0.9.1+5"
 # ╠═7ab65fb7-1b18-42dc-a6a3-cf743aa2a399
 # ╟─6fe8ea61-aa3d-447a-a526-ce511e56c320
 # ╠═72df49e5-c79c-45bf-854f-5fd9442878e1
+# ╟─e65c9460-0ac7-4778-87bb-2a8eb2af812d
+# ╟─232b6992-3a6c-4e0e-b32c-3031151460ae
 # ╟─32eae6ff-8715-45db-ad12-4f70b1944489
 # ╟─f462f171-3ede-49f5-9ba1-71fa2b0ed479
 # ╟─00000000-0000-0000-0000-000000000001
