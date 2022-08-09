@@ -260,6 +260,12 @@ begin
 	nothing
 end
 
+# ╔═╡ 8a1edab9-ce9b-4d24-a913-3412cae6c6c2
+mean(X[end,:])
+
+# ╔═╡ e2cd19dc-5c89-4ecd-836c-de5966be9606
+σ_close = std(X[end,:])
+
 # ╔═╡ 6bfc43c9-01af-4b2e-b6ff-4f5213aba590
 let
 	histogram(X[end,:], bins=250, label="AMD simulation", c=colorant"#55565A", lc=colorant"#55565A",
@@ -314,7 +320,7 @@ In this case, we compute the probability, which we denote as $p^{-}$, that [AMD]
 """
 
 # ╔═╡ e269e59d-31a9-4ea5-a0fd-137258631899
-p⁻ = probability(X[end,:], x->x>S⁻)
+p⁻ = probability(X[end,:], x->x<S⁻)
 
 # ╔═╡ e3c7093c-2de3-4549-9480-8e8aed92b2b5
 md"""
@@ -323,7 +329,7 @@ In this case, we compute the probability, which we denote as $p_{1}$, that [AMD]
 """
 
 # ╔═╡ b8588b61-994e-4329-8203-558e9e78e1c5
-p₁ = probability(X[end,:], x->x>K₁) 
+p₁ = probability(X[end,:], x->x<K₁) 
 
 # ╔═╡ cd249d6b-eca9-414f-a546-124d92ebd89f
 md"""
@@ -343,8 +349,8 @@ In this case, we compute the probability, which we denote as $p^{\star}$, that [
 # ╔═╡ 72df49e5-c79c-45bf-854f-5fd9442878e1
 begin
 
-	a = probability(X[end,:], x->x<K₁)
-	b = probability(X[end,:], x->x<=K₂) 
+	a = probability(X[end,:], x->x<S⁻)
+	b = probability(X[end,:], x->x<=S⁺) 
 	pstar = b - a
 	
 end
@@ -1720,7 +1726,9 @@ version = "0.9.1+5"
 # ╠═95f6cd94-27c6-4397-9d64-3127c997821e
 # ╠═4cf7f697-d733-4a23-9f61-546409e608c9
 # ╠═683ccb45-d6b9-4e98-8e6e-839ae0d5d8ae
-# ╠═6bfc43c9-01af-4b2e-b6ff-4f5213aba590
+# ╠═8a1edab9-ce9b-4d24-a913-3412cae6c6c2
+# ╠═e2cd19dc-5c89-4ecd-836c-de5966be9606
+# ╟─6bfc43c9-01af-4b2e-b6ff-4f5213aba590
 # ╠═2d4343b4-6599-4751-bc8f-a482f527f4af
 # ╟─130d3ee5-0db2-4120-a2ee-15f2c360ac70
 # ╟─ed8641c0-4874-4df8-be81-33e4895b3098
