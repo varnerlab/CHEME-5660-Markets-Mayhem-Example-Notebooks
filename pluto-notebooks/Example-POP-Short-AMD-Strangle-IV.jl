@@ -4,7 +4,7 @@
 using Markdown
 using InteractiveUtils
 
-# ╔═╡ 396f554e-917a-4308-8474-5882b873f608
+# ╔═╡ a2993370-0116-41e7-b50a-6d0501c26cd2
 begin
 
 	# load external packages -
@@ -29,404 +29,99 @@ begin
 	nothing
 end
 
-# ╔═╡ 0890121e-1696-11ed-2c7f-d9f447b13695
+# ╔═╡ 40241355-a66a-42d4-be22-d450aab30b42
 md"""
-### CHEME 5660: Calculating the Probability of Profit at Expiration for a Short Strangle 
+### CHEME 5660: Calculating the Probability of Profit at Expiration for a Short Strangle using the Implied Volatility
 """
 
-# ╔═╡ 3ba526ea-8ee0-4cb8-ba2f-b246ca5fd9d3
+# ╔═╡ 6a66119a-c4af-4d72-9e13-dbabc8d12777
 html"""
 <p style="font-size:20px;">Jeffrey D. Varner</br>
 Smith School of Chemical and Biomolecular Engineering, Cornell University, Ithaca, NY 14850</p>
 """
 
-# ╔═╡ 9c196ced-523f-4960-af97-74acd84bf9ec
+# ╔═╡ be4ddcdb-0a01-4d07-85c9-3b628eb2e67d
 md"""
 ### Introduction
 """
 
-# ╔═╡ 490ea0f3-396e-47c3-a161-f5d68643afb2
-md"""
-The Probability of Profit (POP) at expiration is the probability that your option position will make at least $0.01 at expiration. The probability of profit can be a helpful decision metric, e.g., investors engage in transactions with a _large_ POP and avoid low probability trades. However, the exact meaning of _large_ or _small_ depends upon the investor’s risk tolerance. 
-
-##### Strategy
-Using Monte-Carlo simulation, we can estimate the option position’s probability of Profit (POP) at expiration. 
-First, we can develop a simulation of the price of the underlying asset `XYZ,` e.g., using a geometric Brownian motion model developed from historical data, and then use that model to project the underlying price into the future until expiration. Finally, we can compute the cumulative probability curve to determine the probability that a profit condition is satisfied.
-"""
-
-# ╔═╡ 7b4c47fa-4f3d-4058-90a0-99fb165c55f1
+# ╔═╡ f92933de-5225-47c9-b9b9-e24ee808f743
 md"""
 ### Materials and Methods
 """
 
-# ╔═╡ bc4433e4-e9b4-42a5-8b9c-22a67d89e164
-# ------------------------------------------------------------------------------------------------- #
-# Ticker calculates the ticker symbol for an option
-# ticker: (String, String, Date, Float) -> String
-#
-# see: https://polygon.io/blog/how-to-read-a-stock-options-ticker/
-# ------------------------------------------------------------------------------------------------- #
-function ticker(type::String, underlying::String, expiration::Date, K::Float64)::String
+# ╔═╡ 1b85d9e2-cbfb-4fe5-b6a4-a52184858470
+md"""
+###### a) Implied Volatility (IV) data
+The average implied volatility for at-the-money AMD options with a 10/21/22 expiration (a DTE of 72 days) is __48.45%__.
+"""
 
-    # build components for the options ticker -
-    ticker_component = uppercase(underlying)
-    YY = year(expiration) - 2000 # hack to get 2 digit year 
-    MM = lpad(month(expiration), 2, "0")
-    DD = lpad(day(expiration), 2, "0")
+# ╔═╡ 1ef9843c-cc58-46f9-bf0e-04bfdcccfd32
+md"""
+###### b) Current price
+The current share price of AMD is __\$96.60 USD/share__.
+"""
 
-    # compute the price code -
-    strike_component = lpad(convert(Int64,K*1000), 8, "0")
-
-    # build the ticker string -
-    ticker_string = "O:$(ticker_component)$(YY)$(MM)$(DD)$(type)$(strike_component)"
-    
-    # return -
-    return ticker_string
-end;
-
-# ╔═╡ 1a1af228-7403-4e52-b78b-7fed469b28e4
-function compute_drift_and_volatility(data::DataFrame; m::Int64 = 30)::Tuple{Float64, Float64, Float64}
-
-	# sort the data (newest data on top)
-	𝒫 = sort(data, [order(:timestamp, rev=true), :close]);
-	
-	# initialize -
-	n = m + 2
-	R = Array{Float64,1}(undef,m)
-	μᵣ = 0.0
-	tmp = 0.0
-
-	# compute R -
-	for i ∈ 1:m
-		# compute the log return - and capture
-		R[i] = log(𝒫[n-i,:close]/𝒫[n-i - 1,:close])
-	end
-
-	# compute the average - we are going to borrow the Julia mean function in the Statistics package
-	μᵣ = mean(R)
-
-	# compute the variance -
-	for i ∈ 1:m
-		tmp = tmp + (R[i] - μᵣ)^2
-	end
-	variance = (1/(m-1))*tmp
-
-	return (μᵣ, sqrt(variance), 𝒫[m,:close])
-end;
-
-
-# ╔═╡ d12a4f3d-ca0e-40d1-8042-5339ac0293f8
-function probability(data::Array{Float64,1}, rule::Function)::Float64
-
-	N = length(data)
-	tmp_array = Array{Bool,1}(undef,N)
-	for i ∈ 1:N
-		tmp_array[i] = rule(data[i])
-	end
-
-	# how many true?
-	N_true = length(findall(x->x==true, tmp_array))
-
-	return (N_true/N)
-end
-
-# ╔═╡ 1df8a7b3-a3b0-4028-bf60-3aad03c6433e
+# ╔═╡ 72b366e5-a7af-44e8-b645-e17b135baf22
 md"""
 ### Results
 """
 
-# ╔═╡ ee791075-15ee-4b04-9338-8a333b407a20
-begin
-
-	# setup data
-	# Current date and time: 08/08/2022 at 6:25 AM ITH
-	# Current AMD share price: 102.53
-
-	# expiration -
-	D = Date(2022, 10, 21)
-	
-	# Strikes -
-	K₁ = 80.0 # 1 short put 
-	K₂ = 120.0 # 2 short call
-
-	# Option prices -
-	𝒫₁ = 1.69 # 1 short put 
-	𝒫₂ = 2.97 # 2 short call
-
-	# show -
-	nothing	
-end
-
-# ╔═╡ 6cf025f8-480a-4d1e-8fd9-3d87188de27b
+# ╔═╡ 0e77525b-e6e3-4595-beac-8877be086fbe
 md"""
-#### Compute the Short Strangle Break-Even Points
+##### Compute the $\hat{\sigma}(\Delta{T})$
 """
 
-# ╔═╡ 2bdf8b39-0dee-46af-96f7-46fe9fb97339
+# ╔═╡ 0fd3385f-0ca6-406d-9429-7331e76c3cfd
 begin
 
-	# compute break-even points -
-	S⁻ = K₁ - (𝒫₁ + 𝒫₂)
-	S⁺ = K₂ + (𝒫₁ + 𝒫₂)
+	# setup -
+	ΔT = 72.0
+	IV = 0.4845
+	Sₒ = 96.60
+	β = (1/252)
+
+	# compute -
+	σ̂ = Sₒ*(IV)*sqrt(β*ΔT)
 
 	# display -
 	with_terminal() do
-		println("Low break-even: S⁻ = $(S⁻) USD/share and high break-even: S⁺ = $(S⁺) USD/share")
+		println("Volatility σ̂ = $(σ̂) USD/share based upon the IV for ΔT = 72 days")
 	end
 end
 
-# ╔═╡ 2d867536-4ded-4f4f-a5c5-168ce7de4d73
-let
+# ╔═╡ 564a9b15-9abf-48b7-86e8-a19043149314
+md"""
+##### Compute the CDF for AMD
+"""
 
-	# Setup tickers -
-	T₁ = ticker("P", "AMD", D, K₁)
-	T₂ = ticker("C", "AMD", D, K₂)
+# ╔═╡ a7eb3c3d-3feb-456e-af68-fa197291ba37
+begin
 
-	# build contract models -
-	short_put_contract_model =  build(PutContractModel, (
-    	ticker = T₁,
-    	expiration_date = D,
-    	strike_price = K₁,
-    	premium = 𝒫₁,
-    	number_of_contracts = 1,
-    	direction = -1,
-    	current_price = 0.0
-	));
+	# Build a LogNormal d -
+	d = LogNormal(log(Sₒ), (1/10)*log(σ̂)); # this is a hack - not sure why this works?
 
-	short_call_contract_model =  build(CallContractModel, (
-    	ticker = T₂,
-    	expiration_date = D,
-    	strike_price = K₂,
-    	premium = 𝒫₂,
-    	number_of_contracts = 1,
-    	direction = -1,
-    	current_price = 0.0
-	));
-
-	# build model -
-	contract_array = Array{AbstractAssetModel,1}()
-	push!(contract_array, short_put_contract_model)
-	push!(contract_array, short_call_contract_model)
-	
-	# setup the underlying -
+	# build -
 	L = 1000
-	underlying_range = range(70.0, stop = 130.0, length = L) |> collect
-	
-	# compute the table -
-	dt = expiration(contract_array, underlying_range)
+	underlying_range = range(40.0, stop = 180.0, length = L) |> collect
 
-	# show -
-	nothing
-end
-
-# ╔═╡ 95f6cd94-27c6-4397-9d64-3127c997821e
-price_df = CSV.read(joinpath(_PATH_TO_DATA, "AMD-OCHL-from-05-07-22-to-2022-08-05.csv"), DataFrame)
-
-# ╔═╡ 4cf7f697-d733-4a23-9f61-546409e608c9
-begin
-	m = 45
-	(μ, σ, Xₒ) = compute_drift_and_volatility(price_df; m=m); # compute the daily return and volatility 
-end
-
-# ╔═╡ 683ccb45-d6b9-4e98-8e6e-839ae0d5d8ae
-begin
-
-	# initialize -
-	# sort the data (newest data on top)
-	𝒫 = sort(price_df, [order(:timestamp, rev=true), :close]);
-	m′ = 74 # number of days to 10/21
-	number_of_sample_paths = 10000
-	number_of_time_steps = m′
-	time_final = m′
-	T = range(0, stop=time_final, length=number_of_time_steps) |> collect
-	X = Array{Float64,2}(undef, number_of_time_steps, number_of_sample_paths)
-	Δt = T[2] - T[1]
-	
-	# set the initial condition (for all sample paths) -
-	X[1,:] .= 𝒫[1, :close] # pick the last close price
-
-	# pre-initialize random variable noise term -
-	d = Normal(0,1)
-	ZM = rand(d, number_of_time_steps, number_of_sample_paths)
-
-	# main simulation loop -
-	for s ∈ 1:number_of_sample_paths
-		for t ∈ 1:number_of_time_steps-1
-			X[t+1,s] = X[t,s]*exp((μ - (σ^2)/2)*Δt+(σ*√Δt)*ZM[t,s])
-		end
-	end
-
-	# calculate some stats from X -
-	XM = mean(X,dims=2);
-	σ_mc = std(X,dims=2)
-	
-	# show -
-	nothing
-end
-
-# ╔═╡ 8adf3988-ef4d-466a-9e1e-1a33b2afcb61
-md"""
-###### Mean and Standard Deviation Simulated Close Price on 10/21/22
-"""
-
-# ╔═╡ ce5b49b0-523b-47d1-a943-26269d4849e4
-with_terminal() do
-	
-	# compute -
-	μ_close = mean(X[end,:])
-	σ_close = std(X[end,:])
-
-	# display -
-	println("mean μ_close = $(μ_close) and stddev σ_close = $(σ_close)")
-end
-
-# ╔═╡ 6bfc43c9-01af-4b2e-b6ff-4f5213aba590
-let
-	histogram(X[end,:], bins=250, label="AMD simulation", c=colorant"#55565A", lc=colorant"#55565A",
-		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
-	xlabel!("Simulation AMD close price on 10/21/22", fontsize=18)
-	ylabel!("Count (10K samples, 250 bins)", fontsize=18)
-end
-
-# ╔═╡ 574e720e-a50f-402c-b2e6-0753603c03ba
-begin
-	lgd = fit(LogNormal,X[end,:])
-end
-
-# ╔═╡ ede7dcd1-64fa-4498-840c-f83cb985593d
-begin
-
-	# compute -
-	μ_close = mean(X[end,:])
-	σ_close = std(X[end,:])
-
-	sqrt(log(σ_close))
-end
-
-# ╔═╡ 781e714e-e5e7-4e99-9822-885cb2803e86
-md"""
-###### Cumulative Probability Simulated Close Price on 10/21/22
-"""
-
-# ╔═╡ 2d4343b4-6599-4751-bc8f-a482f527f4af
-let
-
-	# compute cumalative distribution -
-	L = 2000
-	p_array = Array{Float64,1}(undef, L)
-	
-	# setup the underlying -
-	underlying_range = range(40.0, stop = 200.0, length = L) |> collect 
+	# sample -
+	cumulative_probability_array = Array{Float64,1}(undef, L)
 	for i ∈ 1:L
-		p_array[i] = probability(X[end,:], x->x<underlying_range[i])
+		S = underlying_range[i]
+		cumulative_probability_array[i] = cdf(d, S)	
 	end
-
-	# plot -
-	plot(underlying_range, p_array, lw=3, c=colorant"#89CCE2", label="Simulated probability (N=10K)",
-		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent, 
-		legend=:bottomright, xlim=(30.0,220.0))
-	xlabel!("Simulation AMD close price on 10/21/22", fontsize=18)
-	ylabel!("Probability P(X<S)", fontsize=18)
-
-	# uncomment me to save file -
-	# filename = "Fig-AMD-CumalativeProb-N10K-D-10-21-22.pdf"
-	# savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
-# ╔═╡ 130d3ee5-0db2-4120-a2ee-15f2c360ac70
-md"""
-### Compute probability conditions
-"""
+# ╔═╡ 59c937c5-85fa-44ef-ad75-f385d41e97b6
+d
 
-# ╔═╡ ed8641c0-4874-4df8-be81-33e4895b3098
-md"""
-###### Case I: $P(X<S^{+})$
-In this case, we compute the probability, which we denote as $p^{+}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close at expiration less than the high-break even price $S^{+}$:
-"""
-
-# ╔═╡ bb232aa1-f7a3-4cea-b0ab-79ba8ff084bf
-with_terminal() do
-	p⁺ = probability(X[end,:], x->x<S⁺)
-	println("p⁺ = $(p⁺)")
+# ╔═╡ e7af8b7c-4a36-4542-b110-8ec5a6815ef7
+begin
+	plot(underlying_range, cumulative_probability_array)
 end
 
-# ╔═╡ 8b9366e4-e311-4e8d-af68-e783956cb936
-md"""
-###### Case II: $P(X<S^{-})$
-In this case, we compute the probability, which we denote as $p^{-}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close below the low-break even price $S^{+}$ at expiration. 
-"""
-
-# ╔═╡ e269e59d-31a9-4ea5-a0fd-137258631899
-with_terminal() do
-	p⁻ = probability(X[end,:], x->x<S⁻)
-	println("p⁻ = $(p⁻)")
-end
-
-# ╔═╡ e3c7093c-2de3-4549-9480-8e8aed92b2b5
-md"""
-###### Case III: $P(X>K_{1})$
-In this case, we compute the probability, which we denote as $p_{1}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close above the strike price for the short leg of the strangle $K_{1}$ at expiration: 
-"""
-
-# ╔═╡ b8588b61-994e-4329-8203-558e9e78e1c5
-with_terminal() do
-	p₁ = probability(X[end,:], x->x<K₁)
-	println("p₁ = $(p₁)")
-end
-
-# ╔═╡ cd249d6b-eca9-414f-a546-124d92ebd89f
-md"""
-###### Case IV: $P(X<K_{2})$
-In this case, we compute the probability, which we denote as $p_{2}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close below the strike price of the short call price $K_{2}$ at expiration. 
-"""
-
-# ╔═╡ 7ab65fb7-1b18-42dc-a6a3-cf743aa2a399
-with_terminal() do
-	p₂ = probability(X[end,:], x->x<K₂)
-	println("p₂ = $(p₂)")
-end
-
-# ╔═╡ 6fe8ea61-aa3d-447a-a526-ce511e56c320
-md"""
-###### Case V: $P(K_{1}<X\leq{K_{2}})$
-In this case, we compute the probability, which we denote as $p^{\star}$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close between the short put and call strikes at expiration (max profit condition) 
-"""
-
-# ╔═╡ 72df49e5-c79c-45bf-854f-5fd9442878e1
-let
-
-	a = probability(X[end,:], x->x<K₁)
-	b = probability(X[end,:], x->x<=K₂) 
-	pstar = b - a
-
-	with_terminal() do
-		println("pstar = $(pstar)")
-	end
-	
-end
-
-# ╔═╡ e65c9460-0ac7-4778-87bb-2a8eb2af812d
-md"""
-###### Case VI: $P(S^{-}<X\leq{S^{+}})$
-In this case, we compute the probability, which we denote as $p$, that [AMD](https://finance.yahoo.com/quote/AMD/) will close between the low and high breeak-even points (profit condition) 
-"""
-
-# ╔═╡ 232b6992-3a6c-4e0e-b32c-3031151460ae
-let
-	let
-
-	a = probability(X[end,:], x->x<S⁻)
-	b = probability(X[end,:], x->x<=S⁺) 
-	p = b - a
-
-	with_terminal() do
-		println("p = $(p)")
-	end
-	
-end
-end
-
-# ╔═╡ 32eae6ff-8715-45db-ad12-4f70b1944489
+# ╔═╡ 979782a6-b58e-4927-ae24-8b5412f396d6
 md"""
 #### Disclaimer and Risks
 This content is offered solely for training and  informational purposes. No offer or solicitation to buy or sell securities or derivative products, or any investment or trading advice or strategy,  is made, given, or endorsed by the teaching team. 
@@ -436,7 +131,7 @@ Trading involves risk. Carefully review your financial situation before investin
 You are fully responsible for any investment or trading decisions you make. Such decisions should be based solely on your evaluation of your financial circumstances, investment or trading objectives, risk tolerance, and liquidity needs.
 """
 
-# ╔═╡ f462f171-3ede-49f5-9ba1-71fa2b0ed479
+# ╔═╡ d87434c6-18b0-11ed-02a2-83ea6e5ac092
 html"""
 <style>
 main {
@@ -476,7 +171,7 @@ DataFrames = "~1.3.4"
 Distributions = "~0.25.66"
 JLD2 = "~0.4.22"
 PQEcolaPoint = "~0.1.2"
-Plots = "~1.31.5"
+Plots = "~1.31.6"
 PlutoUI = "~0.7.39"
 StatsPlots = "~0.15.1"
 """
@@ -487,7 +182,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0-rc3"
 manifest_format = "2.0"
-project_hash = "071b6fbddf69589bb5754e09c817f0be238e6b7b"
+project_hash = "0e97e53c8e1cc1555505e59efb4ac7c372fb4d5d"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -859,9 +554,9 @@ version = "1.0.2"
 
 [[deps.HTTP]]
 deps = ["Base64", "CodecZlib", "Dates", "IniFile", "Logging", "LoggingExtras", "MbedTLS", "NetworkOptions", "Random", "SimpleBufferStream", "Sockets", "URIs", "UUIDs"]
-git-tree-sha1 = "ed47af35905b7cc8f1a522ca684b35a212269bd8"
+git-tree-sha1 = "f0956f8d42a92816d2bf062f8a6a6a0ad7f9b937"
 uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
-version = "1.2.0"
+version = "1.2.1"
 
 [[deps.HarfBuzz_jll]]
 deps = ["Artifacts", "Cairo_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "Graphite2_jll", "JLLWrappers", "Libdl", "Libffi_jll", "Pkg"]
@@ -916,9 +611,9 @@ uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
 [[deps.Interpolations]]
 deps = ["Adapt", "AxisAlgorithms", "ChainRulesCore", "LinearAlgebra", "OffsetArrays", "Random", "Ratios", "Requires", "SharedArrays", "SparseArrays", "StaticArrays", "WoodburyMatrices"]
-git-tree-sha1 = "23e651bbb8d00e9971015d0dd306b780edbdb6b9"
+git-tree-sha1 = "64f138f9453a018c8f3562e7bae54edc059af249"
 uuid = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
-version = "0.14.3"
+version = "0.14.4"
 
 [[deps.InverseFunctions]]
 deps = ["Test"]
@@ -1144,10 +839,10 @@ uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
 version = "2022.2.1"
 
 [[deps.MultivariateStats]]
-deps = ["Arpack", "LinearAlgebra", "SparseArrays", "Statistics", "StatsBase"]
-git-tree-sha1 = "6d019f5a0465522bbfdd68ecfad7f86b535d6935"
+deps = ["Arpack", "LinearAlgebra", "SparseArrays", "Statistics", "StatsAPI", "StatsBase"]
+git-tree-sha1 = "7008a3412d823e29d370ddc77411d593bd8a3d03"
 uuid = "6f286f6a-111f-5878-ab1e-185364afe411"
-version = "0.9.0"
+version = "0.9.1"
 
 [[deps.NaNMath]]
 deps = ["OpenLibm_jll"]
@@ -1264,9 +959,9 @@ version = "1.3.0"
 
 [[deps.Plots]]
 deps = ["Base64", "Contour", "Dates", "Downloads", "FFMPEG", "FixedPointNumbers", "GR", "GeometryBasics", "JSON", "LaTeXStrings", "Latexify", "LinearAlgebra", "Measures", "NaNMath", "Pkg", "PlotThemes", "PlotUtils", "Printf", "REPL", "Random", "RecipesBase", "RecipesPipeline", "Reexport", "Requires", "Scratch", "Showoff", "SparseArrays", "Statistics", "StatsBase", "UUIDs", "UnicodeFun", "Unzip"]
-git-tree-sha1 = "05873db92e703f134649d88b8a164f3b7acb4d73"
+git-tree-sha1 = "79830c17fe30f234931767238c584b3a75b3329d"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
-version = "1.31.5"
+version = "1.31.6"
 
 [[deps.PlutoUI]]
 deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "Markdown", "Random", "Reexport", "UUIDs"]
@@ -1432,9 +1127,9 @@ uuid = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [[deps.StatsAPI]]
 deps = ["LinearAlgebra"]
-git-tree-sha1 = "f9af7f195fb13589dd2e2d57fdb401717d2eb1f6"
+git-tree-sha1 = "8d7530a38dbd2c397be7ddd01a424e4f411dcc41"
 uuid = "82ae8749-77ed-4fe6-ae5f-f523153014b0"
-version = "1.5.0"
+version = "1.2.2"
 
 [[deps.StatsBase]]
 deps = ["DataAPI", "DataStructures", "LinearAlgebra", "LogExpFunctions", "Missings", "Printf", "Random", "SortingAlgorithms", "SparseArrays", "Statistics", "StatsAPI"]
@@ -1774,50 +1469,27 @@ version = "3.5.0+0"
 
 [[deps.xkbcommon_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg", "Wayland_jll", "Wayland_protocols_jll", "Xorg_libxcb_jll", "Xorg_xkeyboard_config_jll"]
-git-tree-sha1 = "ece2350174195bb31de1a63bea3a41ae1aa593b6"
+git-tree-sha1 = "9ebfc140cc56e8c2156a15ceac2f0302e327ac0a"
 uuid = "d8fb68d0-12a3-5cfd-a85a-d49703b185fd"
-version = "0.9.1+5"
+version = "1.4.1+0"
 """
 
 # ╔═╡ Cell order:
-# ╟─0890121e-1696-11ed-2c7f-d9f447b13695
-# ╟─3ba526ea-8ee0-4cb8-ba2f-b246ca5fd9d3
-# ╟─9c196ced-523f-4960-af97-74acd84bf9ec
-# ╟─490ea0f3-396e-47c3-a161-f5d68643afb2
-# ╟─7b4c47fa-4f3d-4058-90a0-99fb165c55f1
-# ╠═396f554e-917a-4308-8474-5882b873f608
-# ╠═bc4433e4-e9b4-42a5-8b9c-22a67d89e164
-# ╠═1a1af228-7403-4e52-b78b-7fed469b28e4
-# ╠═d12a4f3d-ca0e-40d1-8042-5339ac0293f8
-# ╟─1df8a7b3-a3b0-4028-bf60-3aad03c6433e
-# ╠═ee791075-15ee-4b04-9338-8a333b407a20
-# ╟─6cf025f8-480a-4d1e-8fd9-3d87188de27b
-# ╟─2bdf8b39-0dee-46af-96f7-46fe9fb97339
-# ╠═2d867536-4ded-4f4f-a5c5-168ce7de4d73
-# ╠═95f6cd94-27c6-4397-9d64-3127c997821e
-# ╠═4cf7f697-d733-4a23-9f61-546409e608c9
-# ╠═683ccb45-d6b9-4e98-8e6e-839ae0d5d8ae
-# ╟─8adf3988-ef4d-466a-9e1e-1a33b2afcb61
-# ╠═ce5b49b0-523b-47d1-a943-26269d4849e4
-# ╠═6bfc43c9-01af-4b2e-b6ff-4f5213aba590
-# ╠═574e720e-a50f-402c-b2e6-0753603c03ba
-# ╠═ede7dcd1-64fa-4498-840c-f83cb985593d
-# ╟─781e714e-e5e7-4e99-9822-885cb2803e86
-# ╠═2d4343b4-6599-4751-bc8f-a482f527f4af
-# ╟─130d3ee5-0db2-4120-a2ee-15f2c360ac70
-# ╟─ed8641c0-4874-4df8-be81-33e4895b3098
-# ╠═bb232aa1-f7a3-4cea-b0ab-79ba8ff084bf
-# ╟─8b9366e4-e311-4e8d-af68-e783956cb936
-# ╠═e269e59d-31a9-4ea5-a0fd-137258631899
-# ╟─e3c7093c-2de3-4549-9480-8e8aed92b2b5
-# ╠═b8588b61-994e-4329-8203-558e9e78e1c5
-# ╟─cd249d6b-eca9-414f-a546-124d92ebd89f
-# ╠═7ab65fb7-1b18-42dc-a6a3-cf743aa2a399
-# ╟─6fe8ea61-aa3d-447a-a526-ce511e56c320
-# ╠═72df49e5-c79c-45bf-854f-5fd9442878e1
-# ╟─e65c9460-0ac7-4778-87bb-2a8eb2af812d
-# ╟─232b6992-3a6c-4e0e-b32c-3031151460ae
-# ╟─32eae6ff-8715-45db-ad12-4f70b1944489
-# ╟─f462f171-3ede-49f5-9ba1-71fa2b0ed479
+# ╟─40241355-a66a-42d4-be22-d450aab30b42
+# ╟─6a66119a-c4af-4d72-9e13-dbabc8d12777
+# ╟─be4ddcdb-0a01-4d07-85c9-3b628eb2e67d
+# ╟─f92933de-5225-47c9-b9b9-e24ee808f743
+# ╠═a2993370-0116-41e7-b50a-6d0501c26cd2
+# ╟─1b85d9e2-cbfb-4fe5-b6a4-a52184858470
+# ╟─1ef9843c-cc58-46f9-bf0e-04bfdcccfd32
+# ╟─72b366e5-a7af-44e8-b645-e17b135baf22
+# ╟─0e77525b-e6e3-4595-beac-8877be086fbe
+# ╠═0fd3385f-0ca6-406d-9429-7331e76c3cfd
+# ╟─564a9b15-9abf-48b7-86e8-a19043149314
+# ╠═a7eb3c3d-3feb-456e-af68-fa197291ba37
+# ╠═59c937c5-85fa-44ef-ad75-f385d41e97b6
+# ╠═e7af8b7c-4a36-4542-b110-8ec5a6815ef7
+# ╟─979782a6-b58e-4927-ae24-8b5412f396d6
+# ╠═d87434c6-18b0-11ed-02a2-83ea6e5ac092
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
