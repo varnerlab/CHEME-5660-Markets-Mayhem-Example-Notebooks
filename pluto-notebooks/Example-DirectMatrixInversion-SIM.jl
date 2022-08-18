@@ -220,15 +220,17 @@ __Figure__: Excess daily return for SPY versus the excess daily return for AMD. 
 
 # ╔═╡ ed94e7be-0e36-44ea-9031-321c3b13ab07
 begin
-	scatter(r_spy_all, r_amd_all, legend=:topleft, label="data", bg="floralwhite", 
-		background_color_outside="white", framestyle = :box, fg_legend = :transparent, c=colorant"#F2F2F2")
-	plot!(r_spy_all, Ymodel, lw=2, label="single index model", c=colorant"#0068AC")
+	scatter(r_spy_all[91:end], r_amd_all[91:end], legend=:topleft, label="data (prediction)", bg="floralwhite", 
+		background_color_outside="white", framestyle = :box, fg_legend = :transparent, mc=colorant"#6EB43F", msc=colorant"#55565A")
+	scatter!(r_spy_all[1:90], r_amd_all[1:90], legend=:topleft, label="data (training)", bg="floralwhite", 
+		background_color_outside="white", framestyle = :box, fg_legend = :transparent, mc=colorant"#FFFFFF", msc=colorant"#55565A")
+	plot!(r_spy_all, Ymodel, lw=3, label="single index model", c=colorant"#EF4035")
 	xlabel!("Daily R for SPY (02/17/22 to 08/17/22)", fontsize=18)
 	ylabel!("Daily R for AMD (02/17/22 to 08/17/22)", fontsize=18)
 
 	# uncomment me to save pdf file -
-	# filename="Fig-AMD-SIM-v-Data.pdf"
-	# savefig(joinpath(_PATH_TO_FIGS, filename))
+	#filename="Fig-AMD-SIM-v-Data.pdf"
+	#savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ 3b8c9afe-7e85-431e-aec7-31e3414ee636
