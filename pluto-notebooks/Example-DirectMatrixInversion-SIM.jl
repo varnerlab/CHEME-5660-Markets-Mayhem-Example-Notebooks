@@ -133,6 +133,9 @@ begin
 
 	# excess return -
 	Y = r_amd .- rf
+
+	# show -
+	nothing
 end
 
 # ╔═╡ 45b2ae41-000f-42be-a626-6c3515a01149
@@ -639,7 +642,7 @@ version = "17.4.0+0"
 # ╠═1d37b477-4f67-4e63-a8c7-457ae121b50a
 # ╟─cb6ec804-eae0-48bc-841a-2a13624a368a
 # ╠═f8b8e32e-5472-404f-b13f-93d27335ea69
-# ╠═45b2ae41-000f-42be-a626-6c3515a01149
+# ╟─45b2ae41-000f-42be-a626-6c3515a01149
 # ╠═9df5c36f-2452-4d18-8f3a-b6c0b8b1fd69
 # ╟─3688da26-3bd0-4132-acaa-0a32ba520574
 # ╠═c167603a-c4f3-46d4-b2ea-6d97565bed37
