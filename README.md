@@ -30,13 +30,13 @@ The example notebooks used in lecture, and referenced from the book, are written
 #### Installing Jupyter
 The labs are provided as [Jupyter notebooks](https://jupyter.org); you can find the installation instruction for installing Jupyter [here](https://jupyter.org/install).  For the labs, we use [Julia](https://julialang.org) as our Jupyter notebook kernel; this requires the installation of the [IJulia](https://github.com/JuliaLang/IJulia.jl) package. 
 
-To install [IJulia](https://github.com/JuliaLang/IJulia.jl) from the [Julia REPL](https://docs.julialang.org/en/v1/stdlib/REPL/) by pressingb the `]` key to enter [pkg mode](https://pkgdocs.julialang.org/v1/repl/) and entering:
+To install [IJulia](https://github.com/JuliaLang/IJulia.jl) from the [Julia REPL](https://docs.julialang.org/en/v1/stdlib/REPL/) press the `]` key to enter [pkg mode](https://pkgdocs.julialang.org/v1/repl/) and the issue the command:
 
 ```
 add IJulia
 ```
 
-If you already have Python/Jupyter installed on your machine, this process will also install a
+This will install the [IJulia](https://github.com/JuliaLang/IJulia.jl) package. If you already have Python/Jupyter installed on your machine, this process will also install a
 [kernel specification](https://jupyter-client.readthedocs.io/en/latest/kernels.html#kernelspecs)
 that tells [Jupyter](https://jupyter.org) how to launch [Julia](https://julialang.org) so we can use it in the notebook. You can then launch the [Jupyter notebook](https://jupyter.org) server the usual
 way by running `jupyter notebook` in the terminal.
