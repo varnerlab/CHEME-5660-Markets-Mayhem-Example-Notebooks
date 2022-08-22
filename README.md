@@ -27,7 +27,7 @@ The example notebooks used in lecture, and referenced from the book, are written
     ```
 1. From Pluto, open one of the `.jl` notebook files located in the `CHEME-5660-Markets-Mayhem-Example-Notebooks/pluto-notebooks/` directory—enjoy!
 
-#### Jupyter notebooks
+#### Installing Jupyter
 The labs are provided as [Jupyter notebooks](https://jupyter.org); you can find the installation instruction for installing Jupyter [here](https://jupyter.org/install).  For the labs, we use [Julia](https://julialang.org) as our Jupyter notebook kernel; this requires the installation of the [IJulia](https://github.com/JuliaLang/IJulia.jl) package. 
 
 To install [IJulia](https://github.com/JuliaLang/IJulia.jl) from the [Julia REPL](https://docs.julialang.org/en/v1/stdlib/REPL/) by pressingb the `]` key to enter [pkg mode](https://pkgdocs.julialang.org/v1/repl/) and entering:
