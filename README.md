@@ -1,5 +1,5 @@
 ## CHEME-5660 Example Notebooks
-This repository holds the example notebooks referenced from the [online CHEME 5660 text book](https://varnerlab.github.io/CHEME-5660-Markets-Mayhem-Book/infrastructure.html). In addition, the notebooks used in the lab section are also available here. 
+This repository holds the example notebooks referenced from the [CHEME 5660 textbook](https://varnerlab.github.io/CHEME-5660-Markets-Mayhem-Book/infrastructure.html). In addition, the notebooks used in the lab section are also available here.
 
 ### Installation and Requirments
 
@@ -10,7 +10,7 @@ The example notebooks used in lecture, and referenced from the book, are written
 [Julia](https://julialang.org) and [Pluto](https://github.com/fonsp/Pluto.jl) please check out the tutorial for 
 [MIT 18.S191/6.S083/22.S092 course from Fall 2020](https://computationalthinking.mit.edu/Fall20/installation/).
 
-1. [Install Julia (we are using v1.8, but future newer versions of Julia should also work)](https://julialang.org/downloads/)
+1. [Install Julia (we are using v1.8, but future versions of Julia should also work)](https://julialang.org/downloads/)
 1. [Install Pluto.jl](https://github.com/fonsp/Pluto.jl#installation)
 1. Clone this repo:
     ```bash
