@@ -37,7 +37,23 @@ md"""
 
 # ╔═╡ 44e65692-6a9d-4a0b-aeec-c77dce248595
 md"""
-Finish me ...
+Let $CF_{1}$ denote the cash-flow in period 1 (current value), and $CF_{t}$ the cash-flow in period $t>1$ (future value). Further, let $r_{j+1,j}$ denote the rate of return between discrete time period $j$ and $j+1$. Then: 
+
+$$CF_{t} = \left[\prod_{j=1}^{t-1}\left(1+r_{j+1,j}\right)\right]\cdot{CF_{1}}\qquad{t=2,3,\dots,T}$$
+
+The product term (the $\prod\star$ in the brackets) is called the _multi-period discount factor_ and given the symbol $\mathcal{D}$. Thus, the multiple-period discount factor can be written in a more compact form as:
+
+$$CF_{t} = \mathcal{D}_{t,1}\cdot{CF_{1}}\qquad{t=2,3,\dots,T}$$
+
+In the particular case where the rates of return $r_{\star}$ are equal in each period (let's call this value $\bar{r}$), the _multi-period discount factor_ is given by:
+
+$$\mathcal{D}_{t,1} = (1+\bar{r})^{t-1}\qquad{t=2,3,\dots,T}$$
+
+Let's do some multi-period discounting examples to understand this expression better.
+
+#### Example
+Compute the present value of \$1 collected $T$ time units into the future for a constant discount rate of 2%, 4%, and 6%.
+
 """
 
 # ╔═╡ e53644fe-04be-4441-9792-238517139da4
@@ -50,12 +66,17 @@ md"""
 ### Results
 """
 
+# ╔═╡ faaeb214-6220-45ae-82fc-db4e434fc528
+md"""
+Main simulation loop to compute the current cash flow array $CF$:
+"""
+
 # ╔═╡ 8f2896c2-fdda-4743-b74d-08ff52478056
 begin
 
 	# consider several discount rates -
-	t_array = range(1,stop = 10.0, step = 0.5) |> collect
-	r_array = range(0,stop = 1.0, step = 0.2) |> collect
+	t_array = range(1,stop = 10.0, step = 1) |> collect
+	r_array = range(0,stop = 0.06, step = 0.02) |> collect
 	CF_array = Array{Float64,2}(undef, length(r_array), length(t_array))
 
 	# main loop -
@@ -77,6 +98,11 @@ begin
 	end
 end
 
+# ╔═╡ 7f50907f-5c2d-4ea9-a99d-d192c8f01a17
+md"""
+Visualize the the current cash flow array $CF$:
+"""
+
 # ╔═╡ 91e0ca7c-aa2b-4804-b7c6-58c352ff1358
 begin
 
@@ -85,7 +111,8 @@ begin
 
 	# plots -
 	plot(t_array, CFᵀ[:,2], c=colorant"#EF4035", lw=2, label="r̄ = $(r_array[2])", bg="floralwhite",
-		background_color_outside="white", framestyle = :box, fg_legend = :transparent, xlim=[1,10]);
+		background_color_outside="white", framestyle = :box, fg_legend = :transparent, xlim=[1,10], 
+		legend=:bottomleft);
 	scatter!(t_array, CFᵀ[:,2], msc=colorant"#EF4035", mc=:white, lw=2, label="");
 	
 	plot!(t_array, CFᵀ[:,3], c=colorant"#0068AC", lw=2, label="r̄ = $(r_array[3])");
@@ -149,7 +176,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "348f6a79a0bd38ba1255f0c7081d2fb3eb77780f"
+project_hash = "916d763e0e11e587b26067c7d1c6bd0aaa07951e"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra"]
@@ -1116,7 +1143,9 @@ version = "1.4.1+0"
 # ╟─e53644fe-04be-4441-9792-238517139da4
 # ╠═e8d30f12-0426-4d09-823f-80c8e8192874
 # ╟─ee9a99e9-9181-4963-b9d4-e0a2e8b3d439
+# ╟─faaeb214-6220-45ae-82fc-db4e434fc528
 # ╠═8f2896c2-fdda-4743-b74d-08ff52478056
+# ╟─7f50907f-5c2d-4ea9-a99d-d192c8f01a17
 # ╠═91e0ca7c-aa2b-4804-b7c6-58c352ff1358
 # ╟─d2f709a6-16e4-493d-ac63-ac72e43f84fd
 # ╟─a000f5b9-fe1d-4557-b9c4-383944189443
