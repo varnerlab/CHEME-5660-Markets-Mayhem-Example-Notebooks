@@ -39,9 +39,34 @@ md"""
 ### Introduction
 """
 
+# ╔═╡ 56b3681e-fe56-47d9-9870-c9a029dfbf4d
+md"""
+Previously we used a finite discrete-time difference, e.g., days, weeks, or maybe even years, to compute the discount factor. However, suppose the time difference between $t\rightarrow{t+1}$ were infinitesimally small, i.e., the time difference was continuous. In this case, we have [continuous compounding](https://www.investopedia.com/terms/c/continuouscompounding.asp) where the discount factor $\mathcal{D}$ is defined as:
+
+
+$$\mathcal{D}(r,t) = \exp\left(rt\right)$$
+
+
+A continuous discount factor gives a future value expression of the form:
+
+
+$$CF(t) = \exp\left(rt\right)CF(t_{o})$$
+
+
+where $r$ denotes the _instantaneous_ discount rate, $t$ denotes the current time, $t_{o}$ denotes the initial time. 
+
+#### Example calculation
+Suppose we are given \$1 dollar today. What is the future value of \$1 in T years? Assume a 2.0\%, 4.0\%, and 6.0\% instantaneous annualized discount factor.
+"""
+
 # ╔═╡ f4d25b6f-538a-4bc4-be49-352415d2d13e
 md"""
 ### Materials and Methods
+"""
+
+# ╔═╡ e44455fa-3a81-409b-81ef-fbae26f7df73
+md"""
+Define the continuous discount factor $\mathcal{D}(r,t)$:
 """
 
 # ╔═╡ 7fbc22f9-50e4-4984-a0ac-4147157badfe
@@ -50,6 +75,11 @@ md"""
 # ╔═╡ 378a9b47-405e-48c3-9b79-e74cfa4f3cde
 md"""
 ### Results
+"""
+
+# ╔═╡ 4ed6ce7a-2435-4482-bab3-f8340bf7be5e
+md"""
+Main simulation loop to populate the future value (FV) array
 """
 
 # ╔═╡ 588adedc-b530-4dd7-83a5-81edacd396ab
@@ -77,14 +107,24 @@ begin
 	nothing
 end
 
+# ╔═╡ d5cd1c39-98b3-486d-8e28-3c5cfc358f45
+md"""
+Visualize the future value simulations
+"""
+
 # ╔═╡ 488be3b3-d3e7-42f6-bcfd-bbeb292095ee
 begin
-	plot(t_array, FV[1,:], lw=2, legend=:topleft)
-	plot!(t_array, FV[2,:], lw=2)
-	plot!(t_array, FV[3,:], lw=2)
+	plot(t_array, FV[1,:], lw=2, legend=:topleft, c=colorant"#EF4035", bg="floralwhite",
+		background_color_outside="white", framestyle = :box, fg_legend = :transparent, xlim=[0,10], label="r = 2%");
+	plot!(t_array, FV[2,:], lw=2, c=colorant"#0068AC", label="r = 4%")
+	plot!(t_array, FV[3,:], lw=2, c=colorant"#55565A", label="r = 6%")
 
 	xlabel!("Time (years)", fontsize=18)
-	ylabel!("Future Value (USD future)", fontsize=18)
+	ylabel!("Future Value (USD T-years in the future)", fontsize=18)
+
+	# uncomment me to save fig -
+	#filename = "Fig-FutureValue-1dollar.pdf"
+	#savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ b37092fc-fe42-4fed-9425-b5a541e271e5
@@ -1096,11 +1136,15 @@ version = "1.4.1+0"
 # ╟─64630366-a938-47ea-9437-13c1beaad8da
 # ╟─6cbcdd76-fc2d-4c70-9cb5-a02ffe920cdd
 # ╟─fd45acb1-d804-4caa-918b-8fa157e158dc
+# ╟─56b3681e-fe56-47d9-9870-c9a029dfbf4d
 # ╟─f4d25b6f-538a-4bc4-be49-352415d2d13e
 # ╠═9a51aa34-1cc1-4b6f-a4a8-7f70f5a74389
+# ╠═e44455fa-3a81-409b-81ef-fbae26f7df73
 # ╠═7fbc22f9-50e4-4984-a0ac-4147157badfe
 # ╟─378a9b47-405e-48c3-9b79-e74cfa4f3cde
+# ╟─4ed6ce7a-2435-4482-bab3-f8340bf7be5e
 # ╠═588adedc-b530-4dd7-83a5-81edacd396ab
+# ╟─d5cd1c39-98b3-486d-8e28-3c5cfc358f45
 # ╠═488be3b3-d3e7-42f6-bcfd-bbeb292095ee
 # ╟─b37092fc-fe42-4fed-9425-b5a541e271e5
 # ╟─5cfcf328-2850-11ed-273f-e9f95c5c6648
