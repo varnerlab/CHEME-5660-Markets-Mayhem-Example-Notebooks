@@ -6,10 +6,18 @@ using InteractiveUtils
 
 # ╔═╡ 857f37a5-c8fc-4259-bbee-0b04bd8a401d
 begin
+	
 	# load Julia packages -
 	using Plots
 	using Optim
 	using PlutoUI
+	using Colors
+
+	# setup paths -
+	const _PATH_TO_FIGS = joinpath(pwd(), "figs")
+
+	# show -
+	nothing
 end
 
 # ╔═╡ 5f67cb59-c3bb-4b61-9c59-7739ae15c461
@@ -164,15 +172,21 @@ md"""
 begin
 
 	# plot the discount rate 
-	plot(discount_rate_array.*100, npv_array, lw=2, label="NPV")
+	plot(discount_rate_array.*100, npv_array, lw=3, label="NPV", c=colorant"#EF4035", bg="floralwhite",
+		background_color_outside="white", framestyle = :box, fg_legend = :transparent)
 
 	# what is the zero line?
 	zero_line = zeros(length(discount_rate_array))
-	plot!(discount_rate_array.*100, zero_line, lw=2, label="Zero NPV")
+	plot!(discount_rate_array.*100, zero_line, lw=3, label="Zero NPV (perfectly priced ZC-Bond)", 
+		c=colorant"#0068AC")
 
 	# axis labels -
 	xlabel!("Discount rate r̄ (percentage)", fontsize=18)
 	ylabel!("Net Present Value (NPV) (2022 dollars)", fontsize=18)
+
+	# uncomment me to write fig file -
+	# filename="Fig-JControls-NPV.pdf"
+	# savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ 42256d05-6e1b-4292-9656-4366084a24e0
@@ -206,6 +220,22 @@ with_terminal() do
 	
 	bgfs_soln = Optim.minimizer(opt_result)[1]
 	println("IRR r̄ = $(bgfs_soln*100)%")
+end
+
+# ╔═╡ c4115b3e-5a23-4d0e-b891-1fd7bbbe4636
+md"""
+##### e) Sanity check:
+The [MIT 15.401](https://ocw.mit.edu/courses/sloan-school-of-management/15-401-finance-theory-i-fall-2008/) version of this example used a discount rate of $\bar{r}$ = 4\%; this value of the discount rate, when used with the other problem numbers, gave a NPV = \$19,758. Let's sanity-check our code to determine if we get the same value.
+"""
+
+# ╔═╡ d343de48-ff02-409b-a129-59440c793346
+begin
+	r̄ = 0.04;
+	NPV_sanity_check = NPV(C,r̄)
+
+	with_terminal() do
+		println("Sanity check: The answer is \$19,758 ... what do we get $(NPV_sanity_check*1000)")
+	end
 end
 
 # ╔═╡ 0fc47d8a-ea9d-4537-9322-c8a93a1ac39b
@@ -246,11 +276,13 @@ a {
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
+Colors = "~0.12.8"
 Optim = "~1.7.0"
 Plots = "~1.31.1"
 PlutoUI = "~0.7.39"
@@ -262,7 +294,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "5d7489c68a9b155643681784b1d103ede6bc846c"
+project_hash = "77523f0037155d92db39e45eba19e4a180600672"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -1307,7 +1339,7 @@ version = "0.9.1+5"
 # ╔═╡ Cell order:
 # ╟─5f67cb59-c3bb-4b61-9c59-7739ae15c461
 # ╟─ed0de4a8-ec5f-46ce-bda9-ce923297a4a6
-# ╟─0f083a37-544d-4e15-adc5-7dac34b690ef
+# ╠═0f083a37-544d-4e15-adc5-7dac34b690ef
 # ╟─ea6b4690-5aa7-478f-9784-897104d426be
 # ╠═857f37a5-c8fc-4259-bbee-0b04bd8a401d
 # ╠═0c541f24-bd77-466e-bbb6-41992cb15bf9
@@ -1318,10 +1350,12 @@ version = "0.9.1+5"
 # ╟─b468ba33-b943-4d81-82d6-63091e2eb092
 # ╠═9dfe40dd-72a9-484f-b5de-dfe0ff0666ec
 # ╟─e78caf64-87c4-4306-8e7d-56614e9f184d
-# ╟─47185ca6-0c68-4a7c-b052-451f4d457de9
-# ╟─42256d05-6e1b-4292-9656-4366084a24e0
+# ╠═47185ca6-0c68-4a7c-b052-451f4d457de9
+# ╠═42256d05-6e1b-4292-9656-4366084a24e0
 # ╠═8d676d60-5de6-4447-bc2a-d48463ca9e4a
 # ╟─31c3214b-38d4-4477-a295-6a406ada247a
+# ╟─c4115b3e-5a23-4d0e-b891-1fd7bbbe4636
+# ╠═d343de48-ff02-409b-a129-59440c793346
 # ╟─0fc47d8a-ea9d-4537-9322-c8a93a1ac39b
 # ╟─5e4f6bb6-720b-447e-a180-67e2a02f2466
 # ╟─7854c0be-fc82-11ec-1b4c-8b2975514264
