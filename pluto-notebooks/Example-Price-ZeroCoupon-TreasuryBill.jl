@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.9
+# v0.19.11
 
 using Markdown
 using InteractiveUtils
@@ -9,6 +9,13 @@ begin
 	# load some external packages -
 	using Plots
 	using PlutoUI
+	using Colors
+
+	# setup path to figs -
+	const _PATH_TO_FIGS = joinpath(pwd(), "figs")
+
+	# show -
+	nothing
 end
 
 # ╔═╡ 7b123a0b-c0ac-4eed-b4a1-ee57617d46ff
@@ -27,9 +34,9 @@ md"""
 #### Introduction
 Treasury bills (called T-bills) are short-term debt instruments with terms ranging from a few days to 52 weeks. When a T-bill matures, the bill holder is paid the par amount. The U.S. Treasury sells T-bills at a discount from the par amount; rarely are they sold at a price equal to the par amount. The U.S. Treasury auctions T-bills with terms of 4, 8, 13, 26, and 52 weeks on a regular schedule. 
 
-T-bills are an example of a zero-coupon fixed-income instrument; thus, T-bills do not make coupon payments during the bond term. Instead, the bondholder receives the par value at the bill's term. 
+T-bills are an example of a zero-coupon fixed-income instrument; thus, T-bills do not make coupon payments during the bond term. Instead, the bondholder receives the par value at the bill's period. 
 
-Let a zero-coupon T-bill have a term of $T$-years with an annual market interest rate of $\bar{r}$. Then, the _fair price_ for a zero-coupon T-bill, denoted by $V_{B}$, is the future par value $V_{P}$ of the bond discounted to the time of the purchase:
+Let a zero-coupon T-bill have a term of $T$-years with an annual market interest rate of $\bar{r}$. Then, the _fair price_ for a zero-coupon T-bill, denoted by $V_{B}$, is the future par value $V_{P}$ of the bill discounted to the time of the purchase:
 
 $$V_{B} = \frac{V_{P}}{\left(1+\bar{r}\right)^{T}}$$
 """
@@ -107,30 +114,47 @@ Let's calculate (and visualize) how the Vᵦ changes as a function of the market
 begin
 
 	# initialize -
-	r̄_array = range(0.0,stop=0.1,length=1000)
-	Vᵦ_array = Array{Float64,1}()
+	N = 1000
+	r̄_array = range(0.0,stop=0.1,length=N)
+	Vᵦ_array = Array{Float64,2}(undef, N, 2)
 
 	# constants -
 	Vₚ = 1000.0
-	T = (26)/52
+	T₁ = (26)/52 # 0.5 year -
+	T₂ = 1.0     # 2 years -
 
 	# main loop -
+	counter = 1
 	for r̄ ∈ r̄_array 
-		tmp = price(Vₚ, T, r̄)
-		push!(Vᵦ_array,tmp)
+		tmp_1 = price(Vₚ, T₁, r̄)
+		tmp_2 = price(Vₚ, T₂, r̄)
+		Vᵦ_array[counter,1] = tmp_1
+		Vᵦ_array[counter,2] = tmp_2
+
+		counter = counter + 1
 	end
 end
 
 # ╔═╡ 2496321e-e83e-4ec4-a19d-9dcc25dc2c36
 begin
 	# compute line for comparison -
-	Y_line = Vₚ .+ ((Vᵦ_array[end] - Vᵦ_array[1])/(r̄_array[end] - r̄_array[1])).*r̄_array
+	Y_line_1 = Vₚ .+ ((Vᵦ_array[end,1] - Vᵦ_array[1])/(r̄_array[end] - r̄_array[1])).*r̄_array
+	Y_line_2 = Vₚ .+ ((Vᵦ_array[end,2] - Vᵦ_array[1])/(r̄_array[end] - r̄_array[1])).*r̄_array
 
 	# plot -
-	plot(r̄_array.*100, Vᵦ_array, label="Vₚ = 1000.0, T = $(T) years", lw=2)
-	plot!(r̄_array.*100, Y_line,c=:red, lw=1, label="linear model", ls=:dash)
+	plot(r̄_array.*100, Vᵦ_array[:,1], label="Vₚ = 1000.0, T = $(T₁) years", lw=3, 
+		c=colorant"#0068AC", bg="floralwhite",background_color_outside="white", framestyle = :box, fg_legend = :transparent)
+	plot!(r̄_array.*100, Vᵦ_array[:,2], label="Vₚ = 1000.0, T = $(T₂) years", lw=3, c=colorant"#89CCE2")
+	plot!(r̄_array.*100, Y_line_1,c=colorant"#0068AC", lw=1, label="linear model T = $(T₁) years",
+		ls=:dash)
+	plot!(r̄_array.*100, Y_line_2, lw=1, label="linear model T = $(T₂) years", 
+		ls=:dash, c=colorant"#89CCE2")
 	xlabel!("Market interest rate r̄ (annual percentage)", fontsize=18)
 	ylabel!("Fair price zero-coupon T-bill (USD)",fontsize=18)
+
+
+	# uncomment me to save fig to disk -
+	# savefig(joinpath(_PATH_TO_FIGS, "Fig-Price-Zero-Coupon-Bill.pdf"))
 end
 
 # ╔═╡ 5d959b99-87bc-4018-94ff-9e3f38a5d139
@@ -179,10 +203,12 @@ a {
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
+Colors = "~0.12.8"
 Plots = "~1.31.2"
 PlutoUI = "~0.7.39"
 """
@@ -191,8 +217,9 @@ PlutoUI = "~0.7.39"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.3"
+julia_version = "1.8.0"
 manifest_format = "2.0"
+project_hash = "ff30f7ca01adc6e051f116c08e99540dc36f6fa9"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -208,6 +235,7 @@ version = "3.3.3"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+version = "1.1.1"
 
 [[deps.Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -278,6 +306,7 @@ version = "4.1.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+version = "0.5.2+0"
 
 [[deps.Contour]]
 git-tree-sha1 = "a599cfb8b1909b0f97c5e1b923ab92e1c0406076"
@@ -317,6 +346,7 @@ version = "0.8.6"
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+version = "1.6.0"
 
 [[deps.EarCut_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -532,10 +562,12 @@ version = "0.15.15"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -544,6 +576,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -634,6 +667,7 @@ version = "1.1.0"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.28.0+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
@@ -651,6 +685,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+version = "2022.2.1"
 
 [[deps.NaNMath]]
 git-tree-sha1 = "737a5957f387b17e74d4ad2f440eb330b39a62c5"
@@ -659,6 +694,7 @@ version = "1.0.0"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+version = "1.2.0"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -669,10 +705,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.20+0"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
+version = "0.8.1+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -718,6 +756,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+version = "1.8.0"
 
 [[deps.PlotThemes]]
 deps = ["PlotUtils", "Statistics"]
@@ -797,6 +836,7 @@ version = "1.3.0"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+version = "0.7.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
@@ -873,6 +913,7 @@ version = "0.6.11"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+version = "1.0.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -889,6 +930,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+version = "1.10.0"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -1087,6 +1129,7 @@ version = "1.4.0+3"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1103,6 +1146,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "5.1.1+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1125,10 +1169,12 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+version = "17.4.0+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
