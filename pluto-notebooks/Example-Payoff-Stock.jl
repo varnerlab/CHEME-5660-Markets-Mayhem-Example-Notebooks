@@ -9,7 +9,8 @@ begin
 	
 	# load my packages -
 	using Plots
-
+	using Colors
+	
 	# setup paths -
 	const _PATH_TO_FIGS = joinpath(pwd(), "figs");
 
@@ -27,34 +28,49 @@ md"""
 ### Introduction
 """
 
+# ╔═╡ 2c265515-868f-455a-aae3-3cbd8bb59586
+md"""
+Fill me in.
+"""
+
 # ╔═╡ b619130b-c1c1-456c-86d3-3e75f0322538
 md"""
 ### Materials and Methods
 """
 
-# ╔═╡ b02c80da-4561-4811-a411-a44d1cd9d345
-
-
 # ╔═╡ 3bbef3c7-352c-44a2-88a3-228487770838
 begin
+	
+	# parameters -
 	Sₒ = 100.0  # Purchase price per share
 	r = 0.030 	# risk free rate of 3%
+	ϵ = 0.50    # range or price to sample -
+	N = 100     # number of prices
+
+	# show -
+	nothing
 end
 
 # ╔═╡ 5f5d69e6-b35b-46d8-b214-7a0e4c8c6dd7
 𝒟(r,t) = exp(r*t)
 
+# ╔═╡ 66fc18ab-157f-44d1-bf26-39cc6c366b22
+md"""
+### Results
+"""
+
 # ╔═╡ 9925d06c-c3d0-45c5-a964-d9ea1abea603
 begin
 
-	# setup the data -
-	ϵ = 0.50
-	N = 10
+	# setup storage to hold the data -
 	S_array = range((1-ϵ)*Sₒ, stop = (1+ϵ)*Sₒ, length=N) |> collect;
-	P_array = Array{Float64,2}(undef, N, 2)
-	ΔT = 1.0 # number of years that we hold the stock -
-	D = 𝒟(r,ΔT); # discount -
+	P_array = Array{Float64,2}(undef, N, 3)
+	
+	# compute the discount factor 
+	ΔT = 45/252 # number of years that we hold the stock -
+	D = 𝒟(r,ΔT); 
 
+	# main loop -
 	for i ∈ 1:N
 
 		# make sure to use the discounted value -
@@ -62,18 +78,34 @@ begin
 
 		# capture 
 		P_array[i,1] = S
-		P_array[i,2] = S - Sₒ
+		P_array[i,2] = S - Sₒ # payoff
+		P_array[i,3] = 0.0
 	end
 end
 
-# ╔═╡ 8e174645-290e-4704-b54a-247e23a56b05
-1/D
-
 # ╔═╡ 5272495a-31ac-4567-967a-00508ee68b35
 begin
-	plot(P_array[:,1], P_array[:,2], lw=2)
+	
+	plot(P_array[:,1], P_array[:,2], lw=3, c=colorant"#55565A", bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent, legend=:topleft,
+		label="Discounted at 3% for ΔT = 45 days. Initial Sₒ = 100.0")
+	
+	# label -
+	xlabel!("Price of XYZ (USD/share)", fontsize=18)
+	ylabel!("Profit per share of XYZ (USD/share)")
 
+	# uncomment me to save to a file -
+	savefig(joinpath(_PATH_TO_FIGS, "Fig-XYZ-Payoff.pdf"))
 end
+
+# ╔═╡ ea6b5a42-af33-49df-b0be-cbe5765b4d71
+md"""
+#### Disclaimer and Risks
+This content is offered solely for training and  informational purposes. No offer or solicitation to buy or sell securities or derivative products, or any investment or trading advice or strategy,  is made, given, or endorsed by the teaching team. 
+
+Trading involves risk. Carefully review your financial situation before investing in securities, futures contracts, options, or commodity interests. Past performance, whether actual or indicated by historical tests of strategies, is no guarantee of future performance or success. Trading is generally inappropriate for someone with limited resources, investment or trading experience, or a low-risk tolerance.  Only risk capital that is not required for living expenses.
+
+You are fully responsible for any investment or trading decisions you make. Such decisions should be based solely on your evaluation of your financial circumstances, investment or trading objectives, risk tolerance, and liquidity needs.
+"""
 
 # ╔═╡ 962084a5-ed0f-4e94-9a17-76bf5ee4a9a6
 html"""
@@ -96,9 +128,11 @@ a {
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
+Colors = "~0.12.8"
 Plots = "~1.33.0"
 """
 
@@ -108,7 +142,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "39d0d5866236472d6bc1a58c4e663ea8a2a2e057"
+project_hash = "bf100fe962171de60ccaa694dda57e033249590e"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -1002,14 +1036,15 @@ version = "1.4.1+0"
 # ╔═╡ Cell order:
 # ╟─f439a1b1-47a5-40cc-a8c8-0fa27308f1c5
 # ╟─29e86826-44f9-4024-9f63-505d362a4025
+# ╟─2c265515-868f-455a-aae3-3cbd8bb59586
 # ╟─b619130b-c1c1-456c-86d3-3e75f0322538
 # ╠═61bc7ec0-3457-11ed-31d7-ed2cbda0f489
-# ╠═b02c80da-4561-4811-a411-a44d1cd9d345
 # ╠═3bbef3c7-352c-44a2-88a3-228487770838
 # ╠═5f5d69e6-b35b-46d8-b214-7a0e4c8c6dd7
+# ╟─66fc18ab-157f-44d1-bf26-39cc6c366b22
 # ╠═9925d06c-c3d0-45c5-a964-d9ea1abea603
-# ╠═8e174645-290e-4704-b54a-247e23a56b05
 # ╠═5272495a-31ac-4567-967a-00508ee68b35
+# ╟─ea6b5a42-af33-49df-b0be-cbe5765b4d71
 # ╟─962084a5-ed0f-4e94-9a17-76bf5ee4a9a6
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
