@@ -1,19 +1,20 @@
 # ----------------------------------------------------------------------------------------------------- #
-# Fill me in
+# Compute the expectation of X given the probability vector p
 # ----------------------------------------------------------------------------------------------------- #
 function E(X::Array{Float64,1},p::Array{Float64,1})::Float64
     return sum(X.*p)
 end
 
 # ----------------------------------------------------------------------------------------------------- #
-# Fill me in
+# Compute the variance of X given the probability vector p
 # ----------------------------------------------------------------------------------------------------- #
 function Var(X::Array{Float64,1}, p::Array{Float64,1})::Float64
     return (E(X.^2,p) - (E(X,p))^2)
 end
 
 # ----------------------------------------------------------------------------------------------------- #
-# Fill me in
+# Construct a dictionary holding the probability values for the nodes on each level of a binomial 
+# lattice model with CRR values for (u,d,p)
 # ----------------------------------------------------------------------------------------------------- #
 function build_probability_dictionary(model::CRRLatticeModel, levels::Int64)::Dict{Int64, Array{Float64,1}}
 
@@ -44,7 +45,7 @@ end
 
 
 # ----------------------------------------------------------------------------------------------------- #
-# Fill me in
+# Construct a dictionary holding the node indexes for each level in a binomial tree with ud=1
 # ----------------------------------------------------------------------------------------------------- #
 function build_nodes_dictionary(levels::Int64)::Dict{Int64,Array{Int64,1}}
 
