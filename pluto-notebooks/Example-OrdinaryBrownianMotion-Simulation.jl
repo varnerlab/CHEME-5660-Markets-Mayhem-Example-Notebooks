@@ -49,9 +49,9 @@ md"""
 begin
 
 	# setup model parameters -
-	μ = 0.1
-	σ = 0.75
-	Xₒ = 10.0
+	μ = -0.1
+	σ = 1.75
+	Xₒ = 1.0
 
 	# show -
 	nothing
