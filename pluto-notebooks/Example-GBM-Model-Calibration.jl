@@ -140,6 +140,9 @@ begin
 	df = df_all[1:ℒ,:]
 end
 
+# ╔═╡ cd3d639f-0a88-481a-9fb2-fad730b17b8a
+nrow(df)
+
 # ╔═╡ 6e364e4a-e4e8-4a6c-baea-32f3588e4a20
 begin
 
@@ -1515,6 +1518,7 @@ version = "1.4.1+0"
 # ╟─4650fb6a-4aa0-4dd4-82bb-c950b34875b7
 # ╠═36691617-6207-4067-9456-8c867bbf6722
 # ╠═e150c3a2-4332-4b22-8b77-c07037c7b9de
+# ╠═cd3d639f-0a88-481a-9fb2-fad730b17b8a
 # ╠═6e364e4a-e4e8-4a6c-baea-32f3588e4a20
 # ╠═14c25a44-3d1e-40bf-86b1-2a87c6c249d7
 # ╠═662eeac0-a019-4e65-ba6c-e85640b3f54d
