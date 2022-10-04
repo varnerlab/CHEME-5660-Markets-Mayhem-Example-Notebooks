@@ -35,19 +35,38 @@ function E(model::GeometricBrownianMotionModel)::Array{Float64,2}
     for i ∈ 1:Nₜ
 
         # get the time value -
-        t = time_array[i]
+        t = (time_array[i] - time_array[1])
 
         # compute the expectation -
         value = Xₒ*exp(μ*t)
 
         # capture -
-        expectation_array[i,1] = t
+        expectation_array[i,1] = t+time_array[1]
         expectation_array[i,2] = value
     end
    
 
     # return -
     return expectation_array
+end
+
+function E(data::DataFrame, key::Symbol)::Array{Float64,2}
+
+    # initialize -
+	(NR,_) = size(data)
+	expectation_array = zeros(NR,2)
+
+	for i ∈ 1:NR
+		idx_range = range(1,stop=i,step=1)
+		tmp_array = data[idx_range,key]
+		mean_value = mean(tmp_array)
+		
+        expectation_array[i,1] = i*(1/365) - (1/365)
+        expectation_array[i,2] = mean_value
+	end
+
+	# return -
+	return expectation_array
 end
 
 function Var(model::GeometricBrownianMotionModel)::Array{Float64,2}
@@ -71,13 +90,13 @@ function Var(model::GeometricBrownianMotionModel)::Array{Float64,2}
     for i ∈ 1:Nₜ
 
         # get the time value -
-        t = time_array[i]
+        t = time_array[i] - time_array[1]
 
         # compute the expectation -
         value = (Xₒ^2)*exp(2*μ*t)*(exp((σ^2)*t) - 1)
 
         # capture -
-        variance_array[i,1] = t
+        variance_array[i,1] = t + time_array[1]
         variance_array[i,2] = value
     end
    
