@@ -50,7 +50,7 @@ function E(model::GeometricBrownianMotionModel)::Array{Float64,2}
     return expectation_array
 end
 
-function E(data::DataFrame, key::Symbol)::Array{Float64,2}
+function E(data::DataFrame, key::Symbol; window::Int64=30)::Array{Float64,2}
 
     # initialize -
 	(NR,_) = size(data)
@@ -59,7 +59,14 @@ function E(data::DataFrame, key::Symbol)::Array{Float64,2}
 	for i ∈ 1:NR
 		idx_range = range(1,stop=i,step=1)
 		tmp_array = data[idx_range,key]
-		mean_value = mean(tmp_array)
+
+        # is the tmp_array longer than the window?
+        mean_value = 0.0
+        if (length(tmp_array)>window)
+            mean_value = mean(tmp_array[end-window:end])
+        else
+            mean_value = mean(tmp_array)
+        end
 		
         expectation_array[i,1] = i*(1/365) - (1/365)
         expectation_array[i,2] = mean_value
@@ -105,7 +112,7 @@ function Var(model::GeometricBrownianMotionModel)::Array{Float64,2}
     return variance_array
 end
 
-function Var(data::DataFrame, key::Symbol)::Array{Float64,2}
+function Var(data::DataFrame, key::Symbol; window::Int64=90)::Array{Float64,2}
 
 	# initialize -
 	(NR,_) = size(data)
@@ -114,8 +121,15 @@ function Var(data::DataFrame, key::Symbol)::Array{Float64,2}
 	for i ∈ 1:NR
 		idx_range = range(1,stop=i,step=1)
 		tmp_array = data[idx_range,key]
-		var_value = var(tmp_array; corrected=false)
 		
+        var_value = 0.0;
+        if (length(tmp_array)>window)
+            var_value = var(tmp_array[end-window:end]; corrected=true);
+        else
+            var_value = var(tmp_array; corrected=false);
+        end
+        
+		# grab -
         variance_array[i,1] = i*(1/365) - (1/365)
         variance_array[i,2] = var_value
 	end
