@@ -40,14 +40,14 @@ The [Ornstein–Uhlenbeck model](https://en.wikipedia.org/wiki/Ornstein–Uhlenb
 
 $$dX = \theta\left(\mu-X\right)dt + {\sigma}dW$$
 
-The parameter $\theta>0$ controls the mean reversion rate, $\mu$ denotes the long-term price level and $\sigma>0$ is the volatility parameter. The noise is a [Wiener process](https://en.wikipedia.org/wiki/Wiener_process). 
+The parameter $\theta>0$ controls the mean reversion rate, $\mu$ denotes the long-term price level, and $\sigma>0$ is the volatility parameter. The noise is a [Wiener process](https://en.wikipedia.org/wiki/Wiener_process). 
 
 ##### Euler-Maruyama method
-The [Euler-Maruyama (EM) method](https://en.wikipedia.org/wiki/Euler–Maruyama_method) is an extension, to stochastic differential equations (SDEs), of the [Euler method](https://en.wikipedia.org/wiki/Euler_method) used for approximating the solution of ordinary differential equations (ODEs). For the general stochastic differential equation given by:
+The [Euler-Maruyama (EM) method](https://en.wikipedia.org/wiki/Euler–Maruyama_method) is an extension to stochastic differential equations (SDEs) of the [Euler method](https://en.wikipedia.org/wiki/Euler_method) used for approximating the solution of ordinary differential equations (ODEs). For the general stochastic differential equation given by:
 
 $$dX = a(X,t)dt + b(X,t)dW$$
 
-the EM method gives the approximate solution:
+The EM method gives the approximate solution:
 
 $$X_{k+1} = X_{k} + a(X_{k}, t_{k})h + b(X_{k},t_{k})\sqrt{h}Z\left(0,1\right)$$
 
@@ -1217,7 +1217,7 @@ version = "1.4.1+0"
 # ╔═╡ Cell order:
 # ╟─b83728f0-d815-4140-84c7-4fa77d02bb3b
 # ╟─58a0e252-fe9e-4a07-b7bf-a00ad9e3a5a7
-# ╟─86f4ced2-a21b-4946-9dbe-33d9b3479c2a
+# ╠═86f4ced2-a21b-4946-9dbe-33d9b3479c2a
 # ╟─9692e141-fdd4-47f2-b020-ba79dc59d02c
 # ╟─46308cae-ada6-4623-a64d-e02ddb32425b
 # ╠═4b891918-f818-473b-a464-7eac39f19a56
