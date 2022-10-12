@@ -936,7 +936,7 @@ version = "0.3.0+0"
 deps = ["Agents", "CSV", "DataFrames", "Distributions", "Random", "StaticArrays", "Statistics", "StatsBase"]
 git-tree-sha1 = "d42e8c9e2aed0c7487aae148418d5c83833b9a95"
 repo-rev = "main"
-repo-url = "https://github.com/aaron-wheeler/SFIArtificialStockMarket.jl.git"
+repo-url = "https://github.com/aaron-wheeler/SFIArtificialStockMarket.jl"
 uuid = "92ea773a-4c2e-4dd1-b9ab-722396848ce4"
 version = "0.1.0"
 
@@ -1157,7 +1157,7 @@ version = "0.2.0"
 deps = ["AVLTrees", "BenchmarkTools", "DataStructures", "Dates", "HTTP", "Printf", "Serialization", "Sockets", "Test", "UnicodePlots"]
 git-tree-sha1 = "c468b3dfc5816283ec9991cb4494f111e779d82a"
 repo-rev = "main"
-repo-url = "https://github.com/Renruize12306/VL_LimitOrderBook.git"
+repo-url = "https://github.com/Renruize12306/VL_LimitOrderBook"
 uuid = "aaf583bd-e1f6-46ea-b02f-a6ceb51252d5"
 version = "0.1.0"
 
