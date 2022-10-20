@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.11
+# v0.19.14
 
 using Markdown
 using InteractiveUtils
@@ -48,8 +48,8 @@ md"""
 
 Compute the profit for the put vertical spreads: 
 
-* Case I: $K_{1}>K_{2}$. A __vertical put spread__ on [SPY](https://www.investopedia.com/articles/investing/122215/spy-spdr-sp-500-trust-etf.asp), an exchange-traded fund (ETF) that tracks the S&P 500 index, where the strike of the short leg $K_{1}$ is _greater than_ the strike of the long leg $K_{2}$.
-* Case II: $K_{1}<K_{2}$. A __vertical put spread__ on [AMD](https://finance.yahoo.com/quote/AMD/) where the strike of the short leg $K_{1}$ is _less than_ the strike of the long leg $K_{2}$
+* Case I: $K_{1}>K_{2}$. A __vertical call spread__ on [AMD](hhttps://finance.yahoo.com/quote/AMD?.tsrc=applewf&guccounter=1), an exchange-traded fund (ETF) that tracks the S&P 500 index, where the strike of the short leg $K_{1}$ is _greater than_ the strike of the long leg $K_{2}$.
+* Case II: $K_{1}<K_{2}$. A __vertical call spread__ on [AMD](https://finance.yahoo.com/quote/AMD?.tsrc=applewf&guccounter=1) where the strike of the short leg $K_{1}$ is _less than_ the strike of the long leg $K_{2}$
 
 """
 
@@ -90,72 +90,75 @@ md"""
 
 # ╔═╡ b9e80c25-4ab7-431f-b2b6-e96ff96d5593
 md"""
-#### Case I: $K_{1}>K_{2}$
-Let the share price of the underlying stock be given by $S_{o}$. If the short strike $K_{1}$ is greater than the long strike $K_{2}$, and $K_{2}<S_{o}<K_{1}$, then this position is a [Vertical Bull Credit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp). The directionality assumption of a [Vertical Bull Credit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp) is bullish, i.e., the investor believes the price of the underlying will _increase_. 
+#### Case I: $K_{1}>S_{o}>K_{2}$
+Let the _current_ share price of the underlying stock be given by $S_{o}$. If the short strike $K_{1}$ is greater than the long strike $K_{2}$, and $K_{2}<S_{o}<K_{1}$, then this position is a [Vertical Bull Call Debit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp). The directionality assumption of a [Vertical Bull Call Debit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp) is bullish, i.e., the investor believes the price of the underlying will _increase_. 
 """
 
 # ╔═╡ 249ee244-8bfd-425e-a05b-bef7e3987d58
 let
 	
 	# setup parameters -
-	D = Date(2022, 04, 14)
-	K₁ = 315.0
-	K₂ = 310.0
-	T₁ = ticker("P", "SPY", D, K₁)
-	T₂ = ticker("P", "SPY", D, K₂)
+	Sₒ = 59.90 # 10/20/22 at 10:26 AM
+	D = Date(2022, 12, 16)
+	K₁ = 70.0
+	K₂ = 50.0
+	S₁ = 40.0 # low 
+	S₂ = 80.0 # high
+	T₁ = ticker("C", "AMD", D, K₁)
+	T₂ = ticker("C", "AMD", D, K₂)
 
 	# build SHORT contract leg -
-	short_put_contract = PutContractModel()
-	short_put_contract.ticker = T₁
-	short_put_contract.expiration_date = D
-	short_put_contract.strike_price = K₁
-	short_put_contract.premium = 5.25
-	short_put_contract.number_of_contracts = 1
-	short_put_contract.direction = -1
+	short_call_contract = CallContractModel()
+	short_call_contract.ticker = T₁
+	short_call_contract.expiration_date = D
+	short_call_contract.strike_price = K₁
+	short_call_contract.premium = 2.15
+	short_call_contract.number_of_contracts = 1
+	short_call_contract.direction = -1
 	
 	# create a LONG put contract -
-	long_put_contract = PutContractModel()
-	long_put_contract.ticker = T₂
-	long_put_contract.expiration_date = D
-	long_put_contract.strike_price = K₂
-	long_put_contract.premium = 4.31
-	long_put_contract.number_of_contracts = 1
-	long_put_contract.direction = 1
+	long_call_contract = CallContractModel()
+	long_call_contract.ticker = T₂
+	long_call_contract.expiration_date = D
+	long_call_contract.strike_price = K₂
+	long_call_contract.premium = 12.35
+	long_call_contract.number_of_contracts = 1
+	long_call_contract.direction = 1
 	
 	# build model -
-	put_credit_spread_contract_array = Array{AbstractAssetModel,1}()
-	push!(put_credit_spread_contract_array, short_put_contract)
-	push!(put_credit_spread_contract_array, long_put_contract)
+	call_credit_spread_contract_array = Array{AbstractAssetModel,1}()
+	push!(call_credit_spread_contract_array, short_call_contract)
+	push!(call_credit_spread_contract_array, long_call_contract)
 	
 	# setup the underlying -
 	L = 1000
-	underlying_range = range(305.0, stop = 320.0, length = L) |> collect
+	underlying_range = range(S₁, stop = S₂, length = L) |> collect
 	
 	# compute the table -
-	dt = expiration(put_credit_spread_contract_array, underlying_range)
+	dt = expiration(call_credit_spread_contract_array, underlying_range)
 
 	# zero line -
 	Z = zeros(L)
 	
 	# plot -
-	plot(dt[!, :S], dt[!,:profit],c=colorant"#55565A", label="total profit", legend=:topleft, lw=3, ylim=(-6.0,6.0),
+	plot(dt[!, :S], dt[!,:profit],c=colorant"#55565A", label="total profit", legend=:topleft, lw=3, ylim=(-15.0,15.0),
 		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
 	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=colorant"#EF4035", label="short put K=$(K₁)", ls=:dash, lw=1)
 	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=colorant"#0068AC", label="long put K=$(K₂)", ls=:dash, lw=1)
 	plot!(dt[!,:S], Z, c=colorant"#6EB43F", ls=:dot, label="break-even", lw=1)
 	
-	xlabel!("Underlying price SPY (USD/share)", fontsize=18)
+	xlabel!("Underlying price at expiration AMD (USD/share)", fontsize=18)
 	ylabel!("Profit (USD/share)", fontsize=18)
 
 	# uncomment me to save fig to a file -
-	# filename = "Fig-SPY-Profit-Put-Credit-Spread.pdf"
-	# savefig(joinpath(_PATH_TO_FIGS, filename))
+	#filename = "Fig-AMD-Profit-Call-Debit-Spread.pdf"
+	#savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ 85c27320-4512-4bdd-a2be-d3a92c623af3
 md"""
-#### Case II: $K_{1}<K_{2}$
-Let the share price of the underlying stock be given by $S_{o}$. If the short strike $K_{1}$ is less than the long strike $K_{2}$, and $K_{1}<S_{o}<K_{2}$, then this position is a [Vertical Bull Debit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp). The directionality assumption of a [Vertical Bull Debit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp) is bearish, i.e., the investor believes the price of the underlying will _decrease_. 
+#### Case II: $S_{\circ}<K_{1}<K_{2}$
+Let the _current_ share price of the underlying stock be given by $S_{o}$. If the short strike $K_{1}$ is less than the long strike $K_{2}$, and $S_{o}<K_{1}<K_{2}$, then this position is a [Vertical Bear Credit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp). The directionality assumption of a [Vertical Bear Credit Spread](https://www.investopedia.com/articles/optioninvestor/02/041202.asp) is bearish, i.e., the investor believes the price of the underlying will _decrease_. 
 """
 
 # ╔═╡ 0aa469dc-3b74-4704-9f3b-64c1547ab1cf
@@ -163,57 +166,64 @@ let
 	
 	# setup parameters -
 	D = Date(2022, 09, 16)
-	K₁ = 90.0
-	K₂ = 105.0
-	T₁ = ticker("P", "AMD", D, K₁)
-	T₂ = ticker("P", "AMD", D, K₂)
+	K₁ = 65.0
+	K₂ = 70.0
+
+	S₁ = 55.0
+	S₂ = 80.0
+	
+	T₁ = ticker("C", "AMD", D, K₁)
+	T₂ = ticker("C", "AMD", D, K₂)
 
 	# build SHORT contract leg -
-	short_put_contract = PutContractModel()
-	short_put_contract.ticker = T₁
-	short_put_contract.expiration_date = D
-	short_put_contract.strike_price = K₁
-	short_put_contract.premium = 4.70
-	short_put_contract.number_of_contracts = 1
-	short_put_contract.direction = -1
+	short_call_contract = CallContractModel()
+	short_call_contract.ticker = T₁
+	short_call_contract.expiration_date = D
+	short_call_contract.strike_price = K₁
+	short_call_contract.premium = 3.40
+	short_call_contract.number_of_contracts = 1
+	short_call_contract.direction = -1
 	
 	# create a LONG put contract -
-	long_put_contract = PutContractModel()
-	long_put_contract.ticker = T₂
-	long_put_contract.expiration_date = D
-	long_put_contract.strike_price = K₂
-	long_put_contract.premium = 13.35
-	long_put_contract.number_of_contracts = 1
-	long_put_contract.direction = 1
+	long_call_contract = CallContractModel()
+	long_call_contract.ticker = T₂
+	long_call_contract.expiration_date = D
+	long_call_contract.strike_price = K₂
+	long_call_contract.premium = 2.03
+	long_call_contract.number_of_contracts = 1
+	long_call_contract.direction = 1
 	
 	# build model -
-	put_credit_spread_contract_array = Array{AbstractAssetModel,1}()
-	push!(put_credit_spread_contract_array, short_put_contract)
-	push!(put_credit_spread_contract_array, long_put_contract)
+	call_credit_spread_contract_array = Array{AbstractAssetModel,1}()
+	push!(call_credit_spread_contract_array, short_call_contract)
+	push!(call_credit_spread_contract_array, long_call_contract)
 	
 	# setup the underlying -
 	L = 1000
-	underlying_range = range(80.0, stop = 110.0, length = L) |> collect
+	underlying_range = range(S₁, stop = S₂, length = L) |> collect
 	
 	# compute the table -
-	dt = expiration(put_credit_spread_contract_array, underlying_range)
+	dt = expiration(call_credit_spread_contract_array, underlying_range)
 
 	# zero line -
 	Z = zeros(L)
 
 	# plot -
-	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:topright, lw=3, 
+	plot(dt[!, :S], dt[!,:profit],c=:black, label="total profit", legend=:bottomleft, lw=3, 
 		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
-	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short put K=$(K₁)", ls=:dash, lw=1)
-	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long put K=$(K₂)", ls=:dash, lw=1)
+	plot!(dt[!,:S], dt[!, "profit_$(T₁)"], c=:red, label="short call K=$(K₁)", ls=:dash, lw=1)
+	plot!(dt[!,:S], dt[!, "profit_$(T₂)"], c=:blue, label="long call K=$(K₂)", ls=:dash, lw=1)
 	plot!(dt[!,:S], Z, c=colorant"#6EB43F", ls=:dot, label="break-even", lw=1)
 	xlabel!("Underlying price AMD (USD/share)", fontsize=18)
 	ylabel!("Profit (USD/share)", fontsize=18)
 
 	# uncomment me to save fig to a file -
-	# filename = "Fig-AMD-Profit-Put-Debit-Spread.pdf"
+	# filename = "Fig-AMD-Profit-Call-Credit-Spread.pdf"
 	# savefig(joinpath(_PATH_TO_FIGS, filename))
 end
+
+# ╔═╡ 7e7f46ab-2807-4d13-970b-ac1c24a6b3c7
+
 
 # ╔═╡ e78ee2e4-dd47-4c0f-9e9e-d681bd03e5a6
 md"""
@@ -263,7 +273,7 @@ Plots = "~1.31.3"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.0-rc3"
+julia_version = "1.8.2"
 manifest_format = "2.0"
 project_hash = "2a7cfe9b44adbf6343b102bec7314ad56f8b8ffb"
 
@@ -457,10 +467,10 @@ uuid = "c87230d0-a227-11e9-1b43-d7ebe4e7570a"
 version = "0.4.1"
 
 [[deps.FFMPEG_jll]]
-deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "JLLWrappers", "LAME_jll", "Libdl", "Ogg_jll", "OpenSSL_jll", "Opus_jll", "Pkg", "Zlib_jll", "libaom_jll", "libass_jll", "libfdk_aac_jll", "libvorbis_jll", "x264_jll", "x265_jll"]
-git-tree-sha1 = "ccd479984c7838684b3ac204b716c89955c76623"
+deps = ["Artifacts", "Bzip2_jll", "FreeType2_jll", "FriBidi_jll", "JLLWrappers", "LAME_jll", "Libdl", "Ogg_jll", "OpenSSL_jll", "Opus_jll", "PCRE2_jll", "Pkg", "Zlib_jll", "libaom_jll", "libass_jll", "libfdk_aac_jll", "libvorbis_jll", "x264_jll", "x265_jll"]
+git-tree-sha1 = "74faea50c1d007c85837327f6775bea60b5492dd"
 uuid = "b22a6f82-2f65-5046-a5b2-351ab43fb4e5"
-version = "4.4.2+0"
+version = "4.4.2+2"
 
 [[deps.FilePathsBase]]
 deps = ["Compat", "Dates", "Mmap", "Printf", "Test", "UUIDs"]
@@ -672,7 +682,7 @@ version = "0.6.3"
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
-version = "7.83.1+1"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -840,6 +850,11 @@ version = "1.3.2+0"
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 version = "1.4.1"
+
+[[deps.PCRE2_jll]]
+deps = ["Artifacts", "Libdl"]
+uuid = "efcefdf7-47ab-520b-bdef-62a2eaa19f15"
+version = "10.40.0+0"
 
 [[deps.PCRE_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1092,7 +1107,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
-version = "1.10.0"
+version = "1.10.1"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -1338,7 +1353,7 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
-version = "1.47.0+0"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -1377,6 +1392,7 @@ version = "0.9.1+5"
 # ╠═249ee244-8bfd-425e-a05b-bef7e3987d58
 # ╟─85c27320-4512-4bdd-a2be-d3a92c623af3
 # ╠═0aa469dc-3b74-4704-9f3b-64c1547ab1cf
+# ╠═7e7f46ab-2807-4d13-970b-ac1c24a6b3c7
 # ╟─e78ee2e4-dd47-4c0f-9e9e-d681bd03e5a6
 # ╟─1c6da12c-06c2-11ed-1c59-d3deafd69588
 # ╟─00000000-0000-0000-0000-000000000001
