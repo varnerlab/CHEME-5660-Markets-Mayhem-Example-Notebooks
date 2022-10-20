@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.13
+# v0.19.14
 
 using Markdown
 using InteractiveUtils
@@ -181,7 +181,7 @@ where $A^{T}$ denotes the transpose of the matrix $A$.
 begin
 
 	# let's build the A matrix and the Y array -
-	Y = log.(df[250:end,:close]);
+	Y = log.(df[1:end,:close]);
 	N = length(Y)
 	all_range = range(1,stop=N,step=1) |> collect
 	T = all_range*(1.0/365.0) .- (1.0/365.0)
@@ -206,10 +206,15 @@ Ŷ = A*θ
 
 # ╔═╡ 125d0fd0-d568-4063-920e-28a0e90ad864
 begin
-	plot(T,Ŷ,lw=2)
-	plot!(T,Y,lw=2)
+	plot(T,Ŷ, label="Model", legend=:topright, lw=3,
+		bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent)
+	plot!(T,Y,lw=2, label="Data", c=colorant"#EF4035")
 	xlabel!("Time (year)", fontsize=18)
-	ylabel!("ln X(t)", fontsize=18)
+	ylabel!("ln X(t) AMD", fontsize=18)
+
+	# uncomment me to save fig to a file -
+	#filename = "Fig-AMD-Estimate-mu-All-Data.pdf"
+	#savefig(joinpath(_PATH_TO_FIGS, filename))
 end
 
 # ╔═╡ a6a69149-7484-47a9-a7c5-9928029d37aa
@@ -321,7 +326,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "2a80009e3f57bde09dbf18741791e676f4fe2d85"
+project_hash = "139075aaaa5deeea10976a99eebe8ae37f783383"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
