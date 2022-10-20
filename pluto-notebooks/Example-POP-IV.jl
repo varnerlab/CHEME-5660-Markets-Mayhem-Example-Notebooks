@@ -146,7 +146,8 @@ begin
 
 	# setup some constants -
 	IV = 57.3 	# implied volatility for AMD
-	Sₒ = 57.92 	# initial share price
+	#Sₒ = 57.92 	# initial share price
+	Sₒ = 58.64 	# initial share price
 
 	# show -
 	nothing
@@ -181,7 +182,7 @@ where $A^{T}$ denotes the transpose of the matrix $A$.
 begin
 
 	# let's build the A matrix and the Y array -
-	Y = log.(df[1:end,:close]);
+	Y = log.(df[200:end,:close]);
 	N = length(Y)
 	all_range = range(1,stop=N,step=1) |> collect
 	T = all_range*(1.0/365.0) .- (1.0/365.0)
@@ -242,11 +243,35 @@ begin
 	training_model.σ = σ̂;
 
 	# solve -
-	sample_simulation = solve(training_model; 𝒫 = 1000);
+	sample_simulation = solve(training_model; 𝒫 = 10000);
 end
 
 # ╔═╡ 1604fdc2-8616-41bb-ae01-10b6e4862aea
-plot(sample_simulation[:,1], sample_simulation[:,2:4:end], label="")
+begin
+	
+	# compute the mean -
+	mean_array = mean(sample_simulation[:,2:end], dims=2)
+	std_array = std(sample_simulation[:,2:end], dims=2)
+
+	L = mean_array .- std_array
+	U = mean_array .+ std_array
+	
+	plot(sample_simulation[:,1], sample_simulation[:,2:4:end], label="", c=colorant"#BDBBBB", legend=:topleft, bg="aliceblue", background_color_outside="white", framestyle = :box, fg_legend = :transparent, ylim=[15.0,105])
+	plot!(sample_simulation[:,1], mean_array, lw=3, c=:black, label="mean")
+	plot!(sample_simulation[:,1], mean_array, c=colorant"#0068AC", fillrange=U, 
+		fillalpha = 0.4, lw=2, label="")
+	plot!(sample_simulation[:,1], mean_array, c=colorant"#0068AC", fillrange=L, 
+		fillalpha = 0.4, lw=2, label="")
+
+
+	# label the plots -
+	xlabel!("Time (year)", fontsize=18)
+	ylabel!("Share price AMD (USD/share)", fontsize=18)
+
+	# uncomment me to save fig to a file -
+	#filename = "Fig-AMD-Estimated-Trajectories.pdf"
+	#savefig(joinpath(_PATH_TO_FIGS, filename))
+end
 
 # ╔═╡ 9fcf8fe6-27ab-4dd0-ab90-0a60d00c772d
 begin
@@ -263,7 +288,16 @@ begin
 end
 
 # ╔═╡ 39898568-6a50-4e97-9de5-5ed824bfb121
-plot(tmp_array[:,1], tmp_array[:,2],lw=2)
+begin
+	plot(tmp_array[:,1], tmp_array[:,2],lw=2, bg="floralwhite", background_color_outside="white", 
+		framestyle = :box, fg_legend = :transparent, legend=:topleft, label="Simulated probability (N = 10k)")
+	xlabel!("AMD Share price at expiration (USD/share)", fontsize=18)
+	ylabel!("Probability P(X < S)", fontsize=18)
+
+	# uncomment me to save fig to a file -
+	#filename = "Fig-AMD-Estimated-cumulative-Prob.pdf"
+	#savefig(joinpath(_PATH_TO_FIGS, filename))
+end
 
 # ╔═╡ 071d00b0-4bac-4671-b22c-1d93a5edb647
 d
