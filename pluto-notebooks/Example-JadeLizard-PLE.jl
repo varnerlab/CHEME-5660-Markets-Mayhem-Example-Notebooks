@@ -24,7 +24,7 @@ end
 
 # ╔═╡ 2bbb867b-dd68-4f99-be59-e40c1c0ac1cc
 md"""
-### CHEME 5660 Jade-Lizard Profit at Expiration Diagram
+### CHEME 5660 Jade-Lizard Profit or Loss at Expiration Diagram
 """
 
 # ╔═╡ 99c18ac0-1f85-4422-ad4c-652b42043af6
