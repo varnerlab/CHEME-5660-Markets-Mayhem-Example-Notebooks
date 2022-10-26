@@ -43,3 +43,21 @@ function ticker(type::String, underlying::String, expiration::Date, K::Float64):
     # return -
     return ticker_string
 end
+
+function ticker(type::String, underlying::String, expiration::Date, K::Float64)::String
+
+    # build components for the options ticker -
+    ticker_component = uppercase(underlying)
+    YY = year(expiration) - 2000 # hack to get 2 digit year 
+    MM = lpad(month(expiration), 2, "0")
+    DD = lpad(day(expiration), 2, "0")
+
+    # compute the price code -
+    strike_component = lpad(convert(Int64,K*1000), 8, "0")
+
+    # build the ticker string -
+    ticker_string = "O:$(ticker_component)$(YY)$(MM)$(DD)$(type)$(strike_component)"
+    
+    # return -
+    return ticker_string
+end;
