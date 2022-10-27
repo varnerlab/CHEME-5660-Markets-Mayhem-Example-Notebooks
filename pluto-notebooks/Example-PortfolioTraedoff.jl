@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.5
+# v0.19.14
 
 using Markdown
 using InteractiveUtils
@@ -16,9 +16,11 @@ begin
 	using PlutoUI
 	using PrettyTables
 	using Plots
+	using Colors
 	
 	# setup paths -
 	const _PATH_TO_DIR = joinpath(pwd(), "data")
+	const _PATH_TO_FIGS = joinpath(pwd(), "figs")
 
 	# show -
 	nothing
@@ -97,6 +99,9 @@ The data is loaded into a [Dictionary](https://docs.julialang.org/en/v1/base/col
 # ╔═╡ 7c15540e-a961-4ab0-befe-424ddce299ca
 # load the data from disk -
 data_dictionary = load(joinpath(_PATH_TO_DIR, "Portfolio-Data-06-20-22.jld2"))["dd"];
+
+# ╔═╡ 4ff1c4f2-4982-446c-a17c-c1861cb1010f
+length(keys(data_dictionary))
 
 # ╔═╡ 5a30d34e-b006-42ed-bb6d-716aafed4829
 md"""
@@ -179,16 +184,20 @@ begin
 
 		# package -
 		RR[i,1] = risk
-		RR[i,2] = 100*reward
+		RR[i,2] = reward
 	end
 	
 end
 
 # ╔═╡ 3d41080e-2736-4591-9ec3-ac9771b99277
 begin
-	scatter(RR[:,1],RR[:,2])
-	xlabel!("Portfolio Risk σₚ",fontsize=18)
-	ylabel!("Expected Percentage Daily Return E(rₚ)", fontsize=18)
+	scatter(RR[:,1],RR[:,2], label="Potential portfolio", mc=:white, msc=colorant"#0068AC", bg="floralwhite", background_color_outside="white", framestyle = :box, fg_legend = :transparent, lw=3)
+	xlabel!("Risk measure (σ-risk)",fontsize=18)
+	ylabel!("Expected return (daily)", fontsize=18)
+
+	# uncomment me to save a figure -
+	# savefig(joinpath(_PATH_TO_FIGS, "Fig-MC-Optimal-Front.pdf"))
+	
 end
 
 # ╔═╡ e063dee0-6aa1-4152-9c93-60b4e27b7f6e
@@ -223,6 +232,7 @@ a {
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+Colors = "5ae59095-9a9b-59fe-a467-6f913c188581"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
@@ -233,6 +243,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 CSV = "~0.10.4"
+Colors = "~0.12.8"
 DataFrames = "~1.3.4"
 FileIO = "~1.14.0"
 JLD2 = "~0.4.22"
@@ -245,8 +256,9 @@ PrettyTables = "~1.3.1"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.7.3"
+julia_version = "1.8.2"
 manifest_format = "2.0"
+project_hash = "a62d7cf2f38804ca655bad6455f641a42757fb76"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -262,6 +274,7 @@ version = "3.3.3"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
+version = "1.1.1"
 
 [[deps.Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -338,6 +351,7 @@ version = "3.45.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
+version = "0.5.2+0"
 
 [[deps.Contour]]
 deps = ["StaticArrays"]
@@ -393,6 +407,7 @@ version = "0.8.6"
 [[deps.Downloads]]
 deps = ["ArgTools", "FileWatching", "LibCURL", "NetworkOptions"]
 uuid = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+version = "1.6.0"
 
 [[deps.EarCut_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -641,10 +656,12 @@ version = "0.15.15"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
+version = "0.6.3"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
+version = "7.84.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -653,6 +670,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
+version = "1.10.2+0"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -737,6 +755,7 @@ version = "1.0.3"
 [[deps.MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
+version = "2.28.0+0"
 
 [[deps.Measures]]
 git-tree-sha1 = "e498ddeee6f9fdb4551ce855a46f54dbd900245f"
@@ -754,6 +773,7 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[deps.MozillaCACerts_jll]]
 uuid = "14a3606d-f60d-562e-9121-12d972cd8159"
+version = "2022.2.1"
 
 [[deps.NaNMath]]
 git-tree-sha1 = "737a5957f387b17e74d4ad2f440eb330b39a62c5"
@@ -762,6 +782,7 @@ version = "1.0.0"
 
 [[deps.NetworkOptions]]
 uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
+version = "1.2.0"
 
 [[deps.Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -772,10 +793,12 @@ version = "1.3.5+1"
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+version = "0.3.20+0"
 
 [[deps.OpenLibm_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
+version = "0.8.1+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -821,6 +844,7 @@ version = "0.40.1+0"
 [[deps.Pkg]]
 deps = ["Artifacts", "Dates", "Downloads", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Serialization", "TOML", "Tar", "UUIDs", "p7zip_jll"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+version = "1.8.0"
 
 [[deps.PlotThemes]]
 deps = ["PlotUtils", "Statistics"]
@@ -912,6 +936,7 @@ version = "1.3.0"
 
 [[deps.SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+version = "0.7.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
@@ -993,6 +1018,7 @@ version = "0.6.10"
 [[deps.TOML]]
 deps = ["Dates"]
 uuid = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+version = "1.0.0"
 
 [[deps.TableTraits]]
 deps = ["IteratorInterfaceExtensions"]
@@ -1009,6 +1035,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
+version = "1.10.1"
 
 [[deps.TensorCore]]
 deps = ["LinearAlgebra"]
@@ -1213,6 +1240,7 @@ version = "1.4.0+3"
 [[deps.Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+version = "1.2.12+3"
 
 [[deps.Zstd_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1229,6 +1257,7 @@ version = "0.15.1+0"
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
+version = "5.1.1+0"
 
 [[deps.libfdk_aac_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1251,10 +1280,12 @@ version = "1.3.7+1"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
+version = "1.48.0+0"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
+version = "17.4.0+0"
 
 [[deps.x264_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1285,6 +1316,7 @@ version = "0.9.1+5"
 # ╟─431a1cc7-229e-4c75-8e68-4056a8d1fe60
 # ╟─e3438820-cdcf-4dfd-8af9-6dc06dd9f0c5
 # ╠═7c15540e-a961-4ab0-befe-424ddce299ca
+# ╠═4ff1c4f2-4982-446c-a17c-c1861cb1010f
 # ╟─5a30d34e-b006-42ed-bb6d-716aafed4829
 # ╠═76acab7c-cc16-435f-87e3-2fc20b92abff
 # ╟─507b1174-d60f-486a-b0d9-5ec6a3b4c441
