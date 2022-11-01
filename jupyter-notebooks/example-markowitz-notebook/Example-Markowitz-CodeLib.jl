@@ -16,7 +16,25 @@ function compute_minvar_portfolio_allocation(μ,Σ,target_return::Float64;
     return (p.status, evaluate(w), p.optval, evaluate(ret))
 end
 
-function compute_log_return_array(data_table::DataFrame, map::Pair{Symbol,Symbol}; Δt = (1.0 / 365.0))
+function compute_minvar_portfolio_allocation_risk_free(μ,Σ, target_return::Float64, risk_free_return::Float64; 
+    w_lower::Float64 = 0.0, w_upper::Float64 = 1.0)
+
+    # initialize -
+    number_of_assets = length(μ)
+    w = Variable(number_of_assets)
+    risk = quadform(w,Σ)
+    ret  = dot(w,μ) + (1-sum(w))*risk_free_return
+
+    # setup problem -
+    p = minimize(risk)
+    p.constraints += [w_lower <= w, w <= w_upper, ret >= target_return]
+    Convex.solve!(p, SCS.Optimizer(); silent_solver = true)
+
+    # return -
+    return (p.status, evaluate(w), p.optval, evaluate(ret))
+end
+
+function compute_fractional_return_array(data_table::DataFrame, map::Pair{Symbol,Symbol}; Δt = (1.0 / 365.0))
 
     # initialize -
     (number_of_rows, _) = size(data_table)
@@ -33,7 +51,8 @@ function compute_log_return_array(data_table::DataFrame, map::Pair{Symbol,Symbol
         today_close_price = data_table[row_index, map.second]
 
         # compute the diff -
-        μ = log(today_close_price / yesterday_close_price)
+        tmp = ((today_close_price - yesterday_close_price) / yesterday_close_price)*100
+        μ = max(0,tmp)
 
         # push! -
         push!(return_table, (tmp_date, yesterday_close_price, today_close_price, μ))
@@ -89,7 +108,7 @@ function compute_covariance_array(tickers::Array{String,1}, return_data_dictiona
         end
     end 
     
-    return 10*Σ;
+    return Σ;
 end
 
 function compute_mean_return_array(tickers::Array{String,1}, return_data_dictionary::Dict{String, DataFrame})::Array{Float64,1}
@@ -111,17 +130,4 @@ function compute_mean_return_array(tickers::Array{String,1}, return_data_diction
     end
 
     return μ_vector;
-end
-
-function generate_asset_allocation(n::Int64)
-
-	# generate a uniform random vector -
-	tmp = rand(n)
-
-	idx = rand(1:n)
-	tmp[idx] = -0.5*tmp[idx]
-	Z = sum(tmp)
-
-	# return -
-	return (1/Z)*tmp
 end
