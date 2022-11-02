@@ -51,8 +51,8 @@ function compute_fractional_return_array(data_table::DataFrame, map::Pair{Symbol
         today_close_price = data_table[row_index, map.second]
 
         # compute the diff -
-        tmp = ((today_close_price - yesterday_close_price) / yesterday_close_price)*100
-        μ = max(0,tmp)
+        μ  = ((today_close_price - yesterday_close_price) / yesterday_close_price)*100
+        #μ = max(0,tmp)
 
         # push! -
         push!(return_table, (tmp_date, yesterday_close_price, today_close_price, μ))

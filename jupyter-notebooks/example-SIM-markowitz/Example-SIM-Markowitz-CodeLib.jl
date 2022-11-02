@@ -51,6 +51,24 @@ function sample_sim_model(model::SingleIndexModel, Rₘ::Array{Float64,1}; 𝒫:
     return X
 end
 
+function compute_minvar_portfolio_allocation_risk_free(μ, Σ, target_return::Float64;
+    w_lower::Float64 = 0.0, w_upper::Float64 = 1.0, risk_free_return::Float64 = 0.001)
+
+    # initialize -
+    number_of_assets = length(μ)
+    w = Variable(number_of_assets)
+    risk = quadform(w,Σ)
+    ret  = dot(w,μ) + (1-sum(w))*risk_free_return
+
+    # setup problem -
+    p = minimize(risk)
+    p.constraints += [w_lower <= w, w <= w_upper, ret >= target_return]
+    Convex.solve!(p, SCS.Optimizer(); silent_solver = true)
+
+    # return -
+    return (p.status, evaluate(w), p.optval, evaluate(ret))
+end
+
 function compute_minvar_portfolio_allocation(μ, Σ, target_return::Float64;
     w_lower::Float64 = 0.0, w_upper::Float64 = 1.0, wₒ::Float64 = 0.0, risk_free_return::Float64 = 0.001)
 
@@ -110,7 +128,8 @@ function compute_excess_log_return(data::DataFrame;
 	# compute R -
 	for i ∈ 1:m
 		# compute the log return - and capture
-		R[i] = log(𝒫[n-i,:close]/𝒫[n-i - 1,:close])
+		# R[i] = log(𝒫[n-i,:close]/𝒫[n-i - 1,:close])
+        R[i] = ((𝒫[n-i,:close] - 𝒫[n-i - 1,:close])/(𝒫[n-i - 1,:close]))*100;
 	end
 
 	# return -
