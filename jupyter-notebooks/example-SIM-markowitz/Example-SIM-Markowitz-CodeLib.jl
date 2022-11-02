@@ -51,9 +51,8 @@ function sample_sim_model(model::SingleIndexModel, Rₘ::Array{Float64,1}; 𝒫:
     return X
 end
 
-
 function compute_minvar_portfolio_allocation(μ, Σ, target_return::Float64;
-    w_lower::Float64 = 0.0, w_upper::Float64 = 1.0, wₒ::Float64 = 0.0, risk_free_return::Float64)
+    w_lower::Float64 = 0.0, w_upper::Float64 = 1.0, wₒ::Float64 = 0.0, risk_free_return::Float64 = 0.001)
 
     # initialize -
     number_of_assets = length(μ)
@@ -146,4 +145,41 @@ function μ(models::Dict{String, SingleIndexModel}, Rₘ::Array{Float64,1}, tick
 end
 
 function Σ(models::Dict{String, SingleIndexModel}, Rₘ::Array{Float64,1}, ticker_array::Array{String,1})::Array{Float64,2}
+
+    # how many tickers are going to look at?
+    Nₐ = length(ticker_array);
+
+    # initialize -
+    Σ_array = Array{Float64,2}(undef, Nₐ, Nₐ);
+
+    # compute the std of the market -
+    σₘ = std(Rₘ);
+
+    # main loop -
+    for i ∈ 1:Nₐ
+
+        # outer ticker -
+        outer_ticker = ticker_array[i]
+        outer_model = models[outer_ticker]
+        βᵢ = outer_model.β;
+        σᵢ_noise = std(outer_model.ϵ);
+
+        for j ∈ 1:Nₐ
+            
+            # inner ticker -
+            inner_ticker = ticker_array[j]
+            inner_model = models[inner_ticker]
+            βⱼ = inner_model.β;
+        
+            # compute Σ -
+            if (i == j)
+                Σ_array[i,j] = βᵢ^2*(σₘ)^2 + (σᵢ_noise)^2;
+            else
+                Σ_array[i,j] = βᵢ*βⱼ*(σₘ)^2;
+            end
+        end
+    end
+
+    # return -
+    return Σ_array
 end
