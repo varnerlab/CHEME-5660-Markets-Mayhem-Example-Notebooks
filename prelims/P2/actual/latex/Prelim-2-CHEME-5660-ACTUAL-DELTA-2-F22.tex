@@ -1,0 +1,125 @@
+\documentclass[12pt,twoside]{article}
+
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+%\usepackage{palatino,lettrine}
+\usepackage{fancyhdr}
+\usepackage{epsfig}
+\usepackage[round,comma,sort]{natbib}
+\usepackage{simplemargins}
+\usepackage{setspace}
+\usepackage{supertabular}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{bbold}
+\usepackage[margin=1.5cm]{caption}
+
+
+
+\newcommand{\profs}{Prof. Jeffrey Varner}
+\newcommand{\subj}{5660}
+
+\newlength{\toppush}
+\setlength{\toppush}{2\headheight}
+\addtolength{\toppush}{\headsep}
+
+\newcommand{\htitle}[3]{\noindent\vspace*{-\toppush}\newline\parbox{6.5in}
+{\textit{Markets and Mayhem: CHEME 5660}\hfill\newline
+Chemical and Biomolecular Engineering, Cornell University \hfill #3\newline
+%\profs\hfill Handout #1\vspace*{-.5ex}\newline
+\mbox{}\hrulefill\mbox{}}\vspace*{1ex}\mbox{}\newline
+\begin{center}{\Large\bf #2}\end{center}}
+
+\newcommand{\handout}[3]{\thispagestyle{empty}
+ \markboth{CHEME 5660 #2}{CHEME 5660 #2}
+ \pagestyle{myheadings}\htitle{#1}{#2}{#3}}
+
+%\setlength{\oddsidemargin}{0pt}
+%\setlength{\evensidemargin}{0pt}
+%\setlength{\textwidth}{6.5in}
+%\setlength{\topmargin}{0in}
+%\setlength{\textheight}{8.5in}
+
+%\doublespace
+\onehalfspace
+\setallmargins{1in}
+
+\renewcommand{\rmdefault}{phv}\renewcommand{\sfdefault}{phv}
+\captionsetup[figure]{font=small,labelfont=small}
+
+\begin{document}
+
+
+\handout{1}{PRELIM 2}{F2022}
+\setlength{\parindent}{0pt}
+
+% \newcommand{\solution}{
+%   \medskip
+%   {\bf Solution:}
+% }
+
+\medskip
+\hrulefill
+\medskip
+
+\vspace{0.25in}
+
+VERSION: DELTA-2
+
+\vspace{0.25in}
+
+NAME:
+
+\vspace{0.25in}
+
+\medskip
+\hrulefill
+\medskip
+
+\begin{enumerate}
+
+  \item{Prelim 2 has \textit{three} problems and is worth a total of XX points.}
+  \item{You may use your course notes (on the computer, iPad, etc., or paper) or other course materials, e.g., discussion problems, to formulate your solutions.}
+  \item{Do not consult with any other person regarding the prelim (except the TAs or JV),
+  or use \textit{any form of electronic communication} to discuss the prelim questions.
+  Violation of this policy will result in a ZERO for the prelim.}
+  \item{All computer codes and data must be published per the submission policy.}
+  \item{Show your work and state all assumptions or simplifications.}
+  \item{Good luck!}
+
+\end{enumerate}
+
+\medskip
+\hrulefill
+\medskip
+
+
+
+\begin{enumerate}
+
+
+% Question ===================== %
+% \clearpage
+% \include{Debt}
+% ================================ %
+
+% Question ===================== %
+\clearpage
+\include{Equity}
+% ================================ %
+
+
+% Question ===================== %
+\clearpage
+\include{Options}
+% ================================ %
+
+% Extra -
+\clearpage
+
+\end{enumerate}
+
+\end{document}

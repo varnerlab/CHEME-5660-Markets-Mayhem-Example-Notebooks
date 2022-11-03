@@ -1,0 +1,22 @@
+\item{(XX points)~You are a Quant at Olin Financial, an up-and-coming hedge fund. You have been tasked with computing the distribution of possible future share price values for firm XYZ.
+Suppose the share price of firm XYZ at time $t$, denoted by $S(t)$, is governed by a geometric Brownian motion with the solution:
+
+\begin{equation}\label{eqn-gbm-anal-soln}
+S(t) = S_{\circ}\exp\left(\left(\mu - \frac{\sigma^{2}}{2}\right)\left(t-t_{\circ}\right)+\sigma\sqrt{t-t_{\circ}}\cdot{Z(0,1)}\right)
+\end{equation}
+
+where $S_{\circ}$ denotes the initial share price at $t_{\circ}<t$, $\mu$ denotes the rate of return parameter, 
+$\sigma>0$ denotes the volatility parameter and $Z\left(0,1\right)$ denotes a standard-normal random variable. 
+
+\textbf{Assumptions}: (i) the implied volatility of an At the Money (ATM) 01/20/2023 option on XYZ is 52.27\%; 
+(ii) there are 78 days to 01/20/2023 (from today); (iii) the current share price of XYZ is 270.89 USD/share; 
+(iv) $t_{o} = 0$ is today.
+
+Use the Jupyter notebook \texttt{CHEME-5660-AP2-Equity.ipynb}, and any associated data sets, to answer the following questions:
+\begin{itemize}
+    \item[a)]{Estimate the rate of return parameter $\mu$ from historical OHLC data for firm XYZ.}
+    \item[b)]{Estimate the volatility parameter $\sigma$ from historical OHLC data for firm XYZ.}
+    \item[c)]{Using your estimates of the $\mu$ and $\sigma$ parameters, along with \eqref{eqn-gbm-anal-soln}, estimate a \texttt{LogNormal} distribution of possible future share price values of XYZ on 01/20/2023.
+    Generate N = 10,000 sample paths and let $t_{\circ} = 0$ (now).}
+\end{itemize}
+}

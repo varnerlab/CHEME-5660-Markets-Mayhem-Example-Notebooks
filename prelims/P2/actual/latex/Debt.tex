@@ -1,0 +1,24 @@
+\item{(XX points)~You are a Quant at Olin Financial.
+You have been tasked with computing the interest rate risk on U.S Treasury bond positions held by Olin;
+Olin holds 10 $\times$ 10-year zero-coupon STRIP products, each with a face value of 10,000 USD.
+
+\textbf{Assumptions}:~(i) Olin Financial purchased the bonds at a Treasury auction on 08/18/22 with a spot rate of 2.88\%;
+(ii) the spot rate on 10/28/22 was 4.02\%; (iii) Olin Financial purchased the bonds at a fair price.
+
+Use the Jupyter notebook \texttt{CHEME-5660-PP2-Debt.ipynb} and any associated data sets to answer the following questions:
+
+\begin{itemize}
+    \item[a)]{What price did Olin Financial pay for the bonds at the Treasury auction on 08/18/22?}
+    \item[b)]{If Olin Financial wanted to liquidate their bond position on 10/28/22, what capital gain or loss (assuming fair pricing) would they experience?}
+    \item[c)]{Using the estimates of future spot rates computed from the Cox-Ingersoll-Ross (CIR) model, estimate the distribution of bond prices five years from now. 
+    The CIR model for the spot rate at time $t$, denoted by $r_{t}$, is given by:
+
+    \begin{equation}
+        dr_{r} = \left(\theta - \alpha{r}_{t}\right)dt + \sigma\sqrt{r_{t}}\cdot{dW_{t}}
+    \end{equation}
+
+    where $\theta$ is the long-term spot rate, $\alpha$ is the mean-reversion rate, and $\sigma$ is the volatility of the
+    spot rate. For this calculation: $\theta$ = 2.11\%, $\alpha$ = 0.90 and $\sigma$ = 0.66. Use N = 25,000 sample paths.
+    }
+\end{itemize}
+}
