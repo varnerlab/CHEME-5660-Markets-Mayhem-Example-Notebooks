@@ -87,35 +87,7 @@ function compute_minvar_portfolio_allocation(μ, Σ, target_return::Float64;
     return (p.status, evaluate(w), p.optval, evaluate(ret))
 end
 
-function compute_excess_return(data_table::DataFrame, map::Pair{Symbol,Symbol}; rf::Float64 = 0.0403)
-
-    # initialize -
-    (number_of_rows, _) = size(data_table)
-    return_table = DataFrame(timestamp = Date[], μ = Float64[], R = Float64[])
-
-    # main loop -
-    for row_index = 2:number_of_rows
-
-        # grab the date -
-        tmp_date = data_table[row_index, map.first]
-
-        # grab the price data -
-        yesterday_close_price = data_table[row_index-1, map.second]
-        today_close_price = data_table[row_index, map.second]
-
-        # compute the diff -
-        μ = ((today_close_price - yesterday_close_price) / yesterday_close_price)*100
-        R = μ - rf
-
-        # push! -
-        push!(return_table, (tmp_date, μ, R))
-    end
-
-    # return -
-    return return_table
-end
-
-function compute_excess_log_return(data::DataFrame; 
+function compute_excess_return(data::DataFrame; 
 	m::Int64 = 30, rf::Float64 = 0.0403)::Array{Float64,1}
 
 	# sort the data (newest data on top)
@@ -129,11 +101,11 @@ function compute_excess_log_return(data::DataFrame;
 	for i ∈ 1:m
 		# compute the log return - and capture
 		# R[i] = log(𝒫[n-i,:close]/𝒫[n-i - 1,:close])
-        R[i] = ((𝒫[n-i,:close] - 𝒫[n-i - 1,:close])/(𝒫[n-i - 1,:close]))*100;
+        R[i] = ((𝒫[n-i,:close] - 𝒫[n-i - 1,:close])/(𝒫[n-i - 1,:close]) - rf)*100;
 	end
 
 	# return -
-	return (R .- rf);
+	return R;
 end;
 
 function μ(models::Dict{String, SingleIndexModel}, Rₘ::Array{Float64,1}, ticker_array::Array{String,1})::Array{Float64,1}
