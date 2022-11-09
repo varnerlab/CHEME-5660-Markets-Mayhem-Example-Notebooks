@@ -87,31 +87,37 @@ function compute_minvar_portfolio_allocation(μ, Σ, target_return::Float64;
     return (p.status, evaluate(w), p.optval, evaluate(ret))
 end
 
-function compute_realized_excess_return(data::Dict{String, DataFrame}, ticker_array::Array{String,1}; rf::Float64 = 0.0403)
+function compute_realized_return(data::Dict{String, DataFrame}, ticker_array::Array{String,1}; rf::Float64 = 0.0403)
 
     # how many ticker symbols do we have?
     Nₐ = length(ticker_array)
-    Nₜ = length(data["SPY"][!, :close]);
+    m = length(data["SPY"][!, :close]) - 1;
 
-    # initialize array -
-    R = Array{Float64,2}(undef, Nₐ, Nₜ-1)
+    # initialize -
+    n = m + 2
+    RR = Array{Float64,2}(undef, (Nₐ + 1), m)
+
+    # main loop -
     for i ∈ 1:Nₐ
         
         # grab a data set -
         tmp_ticker = ticker_array[i];
         tmp_data = data[tmp_ticker]
+        𝒫 = sort(tmp_data, [order(:timestamp, rev=true), :close]);
         
-        # process time -
-        for j ∈ 1:Nₜ-1
+        # compute R -
+	    for j ∈ 1:m
+            RR[i, j] = ((𝒫[n-j,:close] - 𝒫[n-j - 1,:close])/(𝒫[n-j - 1, :close]));
+	    end
+    end
 
-            P₀ = tmp_data[j,:close];
-            P₁ = tmp_data[j+1,:close];
-            R[i,j] = ((P₁ - P₀)/(P₀)) - rf
-        end
+    # for the last row, add the risk free rate of return -
+    for j ∈ 1:m
+        RR[end,j] = rf
     end
         
     # return -
-    return R
+    return RR
 end
 
 function compute_excess_return(data::DataFrame; m::Int64 = 30, rf::Float64 = 0.0403, λ::Float64 = 0.0)
@@ -320,4 +326,66 @@ function build(price_data_dictionary::Dict{String, DataFrame}, ticker_symbol_arr
 
     # return -
     return sim_model_dictionary;
+end
+
+function table(data::Array{Float64,2}, portfolio_index::Int64, Σ_array::Array{Float64, 2}, μ_vector::Array{Float64,1}, ticker_symbol_array::Array{String,1}; 
+    δ::Float64 = 0.01)::Array{Any,2}
+
+    # find the indexes of the assets that are "not small" -
+    idx_not_small = findall(x-> abs(x) >= δ, data[portfolio_index, 3:end])
+    A = length(idx_not_small);
+
+    # setup table -
+    allocation_table_data = Array{Any,2}(undef, A+1, 4);
+    for a ∈ 1:A
+    
+        # grab the data -
+        idx = idx_not_small[a];
+        ticker = ticker_symbol_array[idx]
+        ωₐ = data[portfolio_index,(idx .+ 2)];
+
+        # package -
+        allocation_table_data[a,1] = ticker;
+        allocation_table_data[a,2] = ωₐ
+        allocation_table_data[a,3] = μ_vector[idx];
+        allocation_table_data[a,4] = Σ_array[idx,idx];
+    end
+
+    # add a total row -
+    allocation_table_data[end,1] = "Total"
+    allocation_table_data[end,2] = sum(data[portfolio_index, (idx_not_small .+ 2)])
+    allocation_table_data[end,3] = data[portfolio_index,2];
+    allocation_table_data[end,4] = data[portfolio_index,1];
+
+    # return allocation table -
+    return allocation_table_data;
+end
+
+function index(data::Array{Float64,2}, ϵ::Float64)::Union{Nothing, Int64}
+
+    # what portfolio index do we need?
+    portfolio_index = findall(x->x<=ϵ, data[:,1])[end]
+
+    # return -
+    return portfolio_index
+end
+
+function wealth(R::Array{Float64,2}, ω::Array{Float64,1}, Wₒ::Float64)::Array{Float64,1}
+
+    # initialize -
+    RRT = transpose(R)
+    (Nₜ, Nₐ) = size(RRT);
+    WA = Array{Float64,1}(undef, Nₜ);
+    WA[1] = Wₒ; # initially we have Wₒ 
+    
+    # compute the portfolio return -
+    RP = RRT*ω
+
+    # main loop - 
+    for t ∈ 1:(Nₜ - 1)
+        WA[t+1] = WA[t]*(1+RP[t])
+    end
+
+    # return -
+    return WA
 end
