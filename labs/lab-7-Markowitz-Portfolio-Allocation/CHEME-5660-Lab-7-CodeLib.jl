@@ -87,7 +87,7 @@ function compute_minvar_portfolio_allocation(μ, Σ, target_return::Float64;
     return (p.status, evaluate(w), p.optval, evaluate(ret))
 end
 
-function compute_realized_return(data::Dict{String, DataFrame}, ticker_array::Array{String,1}; rf::Float64 = 0.0403)
+function compute_realized_return(data::Dict{String, DataFrame}, ticker_array::Array{String,1}; mr::Float64 = 0.0403)
 
     # how many ticker symbols do we have?
     Nₐ = length(ticker_array)
@@ -103,7 +103,8 @@ function compute_realized_return(data::Dict{String, DataFrame}, ticker_array::Ar
         # grab a data set -
         tmp_ticker = ticker_array[i];
         tmp_data = data[tmp_ticker]
-        𝒫 = sort(tmp_data, [order(:timestamp, rev=true), :close]);
+        # 𝒫 = sort(tmp_data, [order(:timestamp, rev=true), :close]);
+        𝒫 = tmp_data;
         
         # compute R -
 	    for j ∈ 1:m
@@ -113,11 +114,37 @@ function compute_realized_return(data::Dict{String, DataFrame}, ticker_array::Ar
 
     # for the last row, add the risk free rate of return -
     for j ∈ 1:m
-        RR[end,j] = rf
+        RR[end,j] = mr
     end
         
     # return -
     return RR
+end
+
+function compute_realized_return(data::DataFrame; mr::Float64 = 0.0403)
+
+    # initialize -
+    m = length(data[!, :close]) - 1;
+
+    # initialize -
+    n = m + 2
+    RR = Array{Float64,2}(undef, 2, m)
+
+    # 𝒫 = sort(data, [order(:timestamp, rev=true), :close]);
+    𝒫 = data;
+        
+    # compute R -
+	for j ∈ 1:m
+        RR[1, j] = ((𝒫[n-j,:close] - 𝒫[n-j - 1,:close])/(𝒫[n-j - 1, :close]));
+	end
+
+    # for the last row, add the risk free rate of return -
+    for j ∈ 1:m
+        RR[end,j] = mr
+    end
+
+    # return -
+    return RR;
 end
 
 function compute_excess_return(data::DataFrame; m::Int64 = 30, rf::Float64 = 0.0403, λ::Float64 = 0.0)
@@ -361,10 +388,10 @@ function table(data::Array{Float64,2}, portfolio_index::Int64, Σ_array::Array{F
     return allocation_table_data;
 end
 
-function index(data::Array{Float64,2}, ϵ::Float64)::Union{Nothing, Int64}
+function index(data::Array{Float64,2}; σ::Float64)::Union{Nothing, Int64}
 
     # what portfolio index do we need?
-    portfolio_index = findall(x->x<=ϵ, data[:,1])[end]
+    portfolio_index = findall(x->x<=σ, data[:,1])[end]
 
     # return -
     return portfolio_index
