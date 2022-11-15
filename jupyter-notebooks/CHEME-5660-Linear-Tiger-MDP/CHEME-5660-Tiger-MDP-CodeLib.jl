@@ -1,3 +1,5 @@
+rectangle(w, h, x, y) = Shape(x .+ [0,w,w,0], y .+ [0,0,h,h])
+
 mutable struct MDP
 
     # data -
@@ -61,4 +63,40 @@ function iterative_policy_evaluation(p::MDP, π, k_max)
     end
 
     return U;
+end
+
+function Q(p::MDP, U::Array{Float64,1})::Array{Float64,2}
+
+    # grab stuff from the problem -
+    R = p.R;  # reward -
+    T = p.T;    
+    γ = p.γ;
+    𝒮 = p.𝒮;
+    𝒜 = p.𝒜
+
+    # initialize -
+    Q_array = Array{Float64,2}(undef, length(𝒮), length(𝒜))
+
+    for s ∈ 1:length(𝒮)
+        for a ∈ 1:length(𝒜)
+            Q_array[s,a] = R[s,a] + γ*sum([T[s,s′,a]*U[s′] for s′ in 𝒮]);
+        end
+    end
+
+    return Q_array
+end
+
+function π(Q_array::Array{Float64,2})::Array{Int64,1}
+
+    # get the dimension -
+    (NR, _) = size(Q_array);
+
+    # initialize some storage -
+    π_array = Array{Int64,1}(undef, NR)
+    for s ∈ 1:NR
+        π_array[s] = argmax(Q_array[s,:]);
+    end
+
+    # return -
+    return π_array;
 end
