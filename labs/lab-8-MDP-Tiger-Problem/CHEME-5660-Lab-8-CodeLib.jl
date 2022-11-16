@@ -91,12 +91,19 @@ end
 function π(Q_array::Array{Float64,2})::Array{Int64,1}
 
     # get the dimension -
-    (NR, _) = size(Q_array);
+    (NR, NA) = size(Q_array);
 
     # initialize some storage -
     π_array = Array{Int64,1}(undef, NR)
     for s ∈ 1:NR
-        π_array[s] = argmax(Q_array[s,:]);
+
+        # do a check - if all zeros, then give state of 0 -
+        idx_zeros = findall(x->x==0.0, Q_array[s,:]);
+        if (length(idx_zeros) == NA)
+            π_array[s] = 0;
+        else
+            π_array[s] = argmax(Q_array[s,:]);
+        end
     end
 
     # return -
