@@ -1,4 +1,3 @@
-
 # build a transaction type -
 mutable struct TransactionModel
 
@@ -221,15 +220,13 @@ function compute_price_return(S::Float64, S̄::Float64)::Float64
     return log(S/S̄);
 end
 
-function results(episodes::Array{Dict{DateTime,TransactionModel},1}; 
+function results(episodes::Array{Dict{DateTime,TransactionModel},1}, distribution::Normal; 
     initperiod::Int64=12)
 
-    # tmp storage -
-    tmp_vector = Dict{Int64,Array{Any,2}}();
+    # initialize -
     df = DataFrame(
-        s = Float64[],
-        s′ = Float64[],
-        vwap = Float64[],
+        s = Int64[],
+        s′ = Int64[],
         a = Int64[],
         r = Float64[]
     );
@@ -247,31 +244,43 @@ function results(episodes::Array{Dict{DateTime,TransactionModel},1};
         # ok, we "warmed up" for initperiod -
         warmup_timestamp_array = timestamp_array[1:initperiod];
         warmup_ledger = extract(full_run_data_table; timerange = warmup_timestamp_array);
-        vwap_price_value = vwap(warmup_ledger);
+        initial_vwap_price_value = vwap(warmup_ledger);
 
         # grab the run -
         run_timestamp_array = timestamp_array[(initperiod+1):end];
-        run_ledger = extract(full_run_data_table; timerange = run_timestamp_array);
+        run_ledgers = extract(full_run_data_table; timerange = run_timestamp_array);
+
+        # hack: 
+        local_container = Array{Dict{DateTime,TransactionModel},1}();
 
         # build array -
         number_of_run_steps = length(run_timestamp_array);
-        tmp_array = Array{Any,2}(undef, number_of_run_steps, 5);
-
         for j ∈ 1:number_of_run_steps
             
             ts = run_timestamp_array[j]
-            trade = run_ledger[ts];
+            trade = run_ledgers[ts];
+            â = trade.sense;
 
-            p₁ = trade.p₁;
-            p₂ = trade.p₂;
+            # get price -
+            p₁ = trade.p₁
+            p₂ = trade.p₂
+
+            s = state(distribution, p₁);
+            s′ = state(distribution, p₂);
+
+            # compute the return -
+            Δ = log(p₂/initial_vwap_price_value)*100;
+            r̂ = 1.0;
+            if (Δ > 0 && â!=0)
+                r̂ = -1;
+            end
 
             # create a results_tuple -
             result_tuple = (
-                s = p₁,
-                s′ = p₂,
-                vwap = vwap_price_value,
+                s = s,
+                s′ = s′,
                 a = trade.sense,
-                r = log(p₂/p₁)*100
+                r = r̂
             );
 
             push!(df, result_tuple)
@@ -294,4 +303,72 @@ function extract(data::Dict{DateTime,TransactionModel}; timerange::Array{DateTim
 
     # return -
     return ledger;
+end
+
+function state(d::Normal, price::Float64)::Int64
+
+    # initialize -
+    state_flag = 0;
+
+    # get parameters from d -
+    θ = params(d)
+
+    # compute the Z -
+    Z = (price - θ[1])/(θ[2]);
+
+    if (Z>=-0.1 && Z<=0.1)
+        state_flag = 1;
+    elseif (Z>0.1)
+        state_flag = 3;
+    elseif (Z<-0.1)
+        state_flag = 2;
+    end
+
+    # return -
+    return state_flag;
+end
+
+function reformat(data::DataFrame)
+
+    # initialize -
+    𝒮 = [1,2,3];
+    𝒜 = [-1,0,1];
+
+    # build Q array -
+    Q_array = Array{Float64,2}(undef, length(𝒮), length(𝒜))
+
+    for s ∈ 1:length(𝒮)
+        for a ∈ 1:length(𝒜)
+            
+            # ok, so get all the rewards for this state -
+            rewards_vector = filter([:s,:a]=>(x,y)->(x==s && y==𝒜[a]), data)[:,:r];
+            
+            @show (s, a,  rewards_vector)
+
+        end
+    end
+
+    return Q_array;
+end
+
+function π(Q_array::Array{Float64,2})::Array{Int64,1}
+
+    # get the dimension -
+    (NR, NA) = size(Q_array);
+
+    # initialize some storage -
+    π_array = Array{Int64,1}(undef, NR)
+    for s ∈ 1:NR
+
+        # do a check - if all zeros, then give state of 0 -
+        idx_zeros = findall(x->x==0.0, Q_array[s,:]);
+        if (length(idx_zeros) == NA)
+            π_array[s] = 0;
+        else
+            π_array[s] = argmax(Q_array[s,:]);
+        end
+    end
+
+    # return -
+    return π_array;
 end
