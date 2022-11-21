@@ -4,20 +4,22 @@ mutable struct TransactionModel
 
     # data -
     volume::Int64
-    price::Float64
+    p₁::Float64
+    p₂::Float64
     sense::Int64
-
+    
     # constructor -
     TransactionModel() = new();
 end
 
 function build(type::Type{TransactionModel}; 
-    volume::Float64 = 0.0, price::Float64 = 0.0, sense::Int64 = 1)
+    volume::Float64 = 0.0, p₁::Float64 = 0.0, p₂::Float64 = 0.0, sense::Int64 = 1)
 
     # build blank transaction model -
     model = TransactionModel();
     model.volume = volume;
-    model.price = price;
+    model.p₁ = p₁;
+    model.p₂ = p₂;
     model.sense = sense;
 
     # rerturn -
@@ -72,10 +74,15 @@ function partition(data::Dict{String, DataFrame}; fraction::Float64)::Tuple{Dict
     return (training, prediction)
 end
 
-function initialize(data::DataFrame; lotsize::Float64 = 1.0, periods::Int64=1)
+function initialize(data::DataFrame; lotsize::Float64 = 1.0, start::Int64=1, stop::Int64=1)
 
     # initialize -
+    data_range_array = range(start, stop=stop, step=1) |> collect
+    periods = length(data_range_array);
+
+    # init some space -
     tmp_array = Array{Any,2}(undef, periods, 4)
+    ledger = Dict{DateTime,TransactionModel}();
 
     # compute a parameter to simulate friction -
     d = Uniform(0,1);
@@ -86,10 +93,13 @@ function initialize(data::DataFrame; lotsize::Float64 = 1.0, periods::Int64=1)
         # compute rand value -
         θ = rand(d);
 
+        # what index -
+        index = data_range_array[i]
+
         # get the high low for this period -
-        H = data[i,:high]
-        L = data[i,:low]
-        time = data[i,:timestamp]
+        H = data[index,:high]
+        L = data[index,:low]
+        time = data[index,:timestamp]
 
         # get the open -
         tmp_array[i,1] = lotsize;
@@ -98,32 +108,19 @@ function initialize(data::DataFrame; lotsize::Float64 = 1.0, periods::Int64=1)
         tmp_array[i,4] = time;
     end
 
-    # # compute the average share price -
-    # n_total = sum(tmp_array[:,1]);
-    # for i ∈ 1:periods
-    #     tmp_array[i,2] = (tmp_array[i,1]/n_total);
-    # end
-
-    # ω = tmp_array[:,2]
-    # p = tmp_array[:,3]
-    # avg_price = sum(ω.*p)
+    # load these transactions into my trade-ledger 
+    (NR,NC) = size(tmp_array);
+    for i ∈ 1:NR
     
-    return tmp_array
-end
-
-function compute_aggregate_price(trades::Dict{Int64, Pair{Float64,Float64}})::Float64
-
-    # initialize -
-    number_of_trades = length(trades);
-    total_position_size = 0.0;
-    aggregate_price = 0.0;
-
-    for (d,trade) ∈ trades
-        total_position_size = total_position_size + trade.first
+        # get the time stamp of the trade -
+        time = tmp_array[i,4];
+    
+        # build transaction object -
+        ledger[time] = build(TransactionModel, volume=tmp_array[i,1], p₁=tmp_array[i,3], p₂=tmp_array[i,3], sense = 1);
     end
     
-    # return -
-    return total_position_size;
+    # retur the ledger -
+    return ledger
 end
 
 function vwap(ledger::Dict{DateTime,TransactionModel})::Float64
@@ -146,19 +143,19 @@ function vwap(ledger::Dict{DateTime,TransactionModel})::Float64
         data = ledger[timestamp];
         sense_flag = data.sense;
         volume = data.volume;
-        price = data.price;
+        price = data.p₁;
         
         # grab the volume and price data for later -
         tmp_array[i,1] = volume;
         tmp_array[i,2] = price;
-        
+    
         # if we are selling, then don't includ in the vwap calculation -
         if (sense_flag == -1)
             tmp_array[i,1] = 0.0;    
         end
-    
+
         # compute the total -
-        total_number_of_shares = total_number_of_shares + sense_flag*volume;
+        total_number_of_shares = total_number_of_shares + sense_flag*volume; 
     end
 
     # update the volume to fraction -
@@ -207,7 +204,6 @@ end
 function price(data::DataFrame, timestamp::DateTime)::Float64
 
     # initialize -
-    price_value = 0.0;
     d = Uniform(0,1);
 
     # get the high/low prices at this timestamp -
@@ -223,4 +219,79 @@ end
 
 function compute_price_return(S::Float64, S̄::Float64)::Float64
     return log(S/S̄);
+end
+
+function results(episodes::Array{Dict{DateTime,TransactionModel},1}; 
+    initperiod::Int64=12)
+
+    # tmp storage -
+    tmp_vector = Dict{Int64,Array{Any,2}}();
+    df = DataFrame(
+        s = Float64[],
+        s′ = Float64[],
+        vwap = Float64[],
+        a = Int64[],
+        r = Float64[]
+    );
+
+    # ok, so this is going to get weird ...
+    number_of_episodes = length(episodes);
+    for i ∈ 1:number_of_episodes
+        
+        # grab -
+        full_run_data_table = episodes[i];
+
+        # get the keys -
+        timestamp_array = sort(keys(full_run_data_table) |> collect)
+
+        # ok, we "warmed up" for initperiod -
+        warmup_timestamp_array = timestamp_array[1:initperiod];
+        warmup_ledger = extract(full_run_data_table; timerange = warmup_timestamp_array);
+        vwap_price_value = vwap(warmup_ledger);
+
+        # grab the run -
+        run_timestamp_array = timestamp_array[(initperiod+1):end];
+        run_ledger = extract(full_run_data_table; timerange = run_timestamp_array);
+
+        # build array -
+        number_of_run_steps = length(run_timestamp_array);
+        tmp_array = Array{Any,2}(undef, number_of_run_steps, 5);
+
+        for j ∈ 1:number_of_run_steps
+            
+            ts = run_timestamp_array[j]
+            trade = run_ledger[ts];
+
+            p₁ = trade.p₁;
+            p₂ = trade.p₂;
+
+            # create a results_tuple -
+            result_tuple = (
+                s = p₁,
+                s′ = p₂,
+                vwap = vwap_price_value,
+                a = trade.sense,
+                r = log(p₂/p₁)*100
+            );
+
+            push!(df, result_tuple)
+        end
+    end
+
+    # return -
+    return df;
+end
+
+function extract(data::Dict{DateTime,TransactionModel}; timerange::Array{DateTime,1})
+
+    # initialize -
+    ledger = Dict{DateTime,TransactionModel}();
+
+    # extract -
+    for d ∈ timerange
+        ledger[d] = data[d];
+    end
+
+    # return -
+    return ledger;
 end
