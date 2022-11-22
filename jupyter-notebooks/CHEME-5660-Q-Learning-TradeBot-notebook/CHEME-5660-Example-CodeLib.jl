@@ -24,6 +24,8 @@ function update!(model::QLearningModel, s, a, r, s′)
     α = model.α
     Q = model.Q
 
+    # @show (s, a, r, s′)
+
     # update -
     Q[s,a] += α*(r + γ*maximum(Q[s′,:]) - Q[s,a])
 
@@ -36,14 +38,15 @@ function state(price::Float64; μ::Float64 = 0.0, σ::Float64 = 1.0, ϵ::Float64
     # compute the Z -
     Z = (price - μ)/σ;
 
+
     # bin the Z-score -
-    if (0 <= Z <=ϵ)
+    if (0.0 <= Z <= ϵ)
         return 1
-    elseif (Z>ϵ)
+    elseif ( Z > ϵ)
         return 2
-    elseif (-ϵ<=Z<0)
+    elseif (-ϵ < Z < 0.0)
         return 3
-    elseif (Z<-ϵ)
+    elseif (Z <= -ϵ)
         return 4
     end
 end
