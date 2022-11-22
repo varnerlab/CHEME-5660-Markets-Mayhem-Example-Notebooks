@@ -33,20 +33,20 @@ function update!(model::QLearningModel, s, a, r, s′)
     return model;
 end
 
-function state(price::Float64; μ::Float64 = 0.0, σ::Float64 = 1.0, ϵ::Float64 = 0.1)
+function state(price::Float64; μ::Float64 = 0.0, σ::Float64 = 1.0, δ::Float64 = 0.1)
 
     # compute the Z -
     Z = (price - μ)/σ;
 
 
     # bin the Z-score -
-    if (0.0 <= Z <= ϵ)
+    if (0.0 <= Z <= δ)
         return 1
-    elseif ( Z > ϵ)
+    elseif ( Z > δ)
         return 2
-    elseif (-ϵ < Z < 0.0)
+    elseif (-δ < Z < 0.0)
         return 3
-    elseif (Z <= -ϵ)
+    elseif (Z <= -δ)
         return 4
     end
 end
@@ -157,4 +157,56 @@ function liquidate(ledger::DataFrame, p::Float64)::Float64
     # compute the vwap for this portfolio -
     vwap_value = vwap(ledger);
     return (p - vwap_value)
+end
+
+function compute_position_size(ledger::DataFrame)::Int64
+
+    # initialize -
+    current_position_size = 0.0;
+    for i ∈ 1:nrow(ledger)
+        
+        # get action, and the size for this ledger entry -
+        aᵢ = ledger[i,:action]
+        nᵢ = ledger[i,:n];
+
+        if (aᵢ == 1)
+            current_position_size = current_position_size + nᵢ
+        elseif (aᵢ == 2)
+            current_position_size = current_position_size - nᵢ
+        end
+    end
+
+    return current_position_size;
+end
+
+function softmax(data::Array{Float64,1})
+
+    # initialize -
+    value_array = Array{Float64,1}();
+    
+
+    # compute the demonimator -
+    D = sum(exp.(data))
+
+    for value in data
+        N = exp(value);
+        push!(value_array, N/D)
+    end
+    
+    return value_array;
+end
+
+function state(price::Float64, W::Array{Float64,2})::Int64
+
+    # initialize -
+    test_class = Array{Float64,1}(undef, 4);
+
+    # compute the score for each class -
+    test_class[1] = price*W[1,1]+W[2,1]
+    test_class[2] = price*W[1,2]+W[2,2]
+    test_class[3] = price*W[1,3]+W[2,3]
+    test_class[4] = price*W[1,4]+W[2,4]
+
+    # return the class -
+    return argmax(softmax(test_class))
 end
