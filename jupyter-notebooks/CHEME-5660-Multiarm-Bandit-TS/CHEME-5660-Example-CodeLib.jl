@@ -105,7 +105,7 @@ function sample(model::EpsilonSamplingModel, data::Dict{String,DataFrame}, ticke
     return time_sample_results_dict_Ts;
 end
 
-function sample(model::EpsilonSamplingModel;  𝒯::Int64 = 0, world::Function = _null)::Dict{Int64,Beta}
+function sample(model::EpsilonSamplingModel;  𝒯::Int64 = 0, world::Function = _null)::Dict{Int64, Array{Float64,2}}
 
     # initialize -
     α = model.α
@@ -113,9 +113,11 @@ function sample(model::EpsilonSamplingModel;  𝒯::Int64 = 0, world::Function =
     K = model.K
     ϵ = model.ϵ
     θ̂_vector = Array{Float64,1}(undef, K)
+    time_sample_results_dict = Dict{Int64, Array{Float64,2}}();
 
     # generate random Categorical distribution -
-    dcat = Categorical([0.30, 0.35, 0.35]);
+    parray = [1/K for i = 1:K]
+    dcat = Categorical(parray);
 
     # initialize collection of Beta distributions -
     action_distribution = Array{Beta,1}(undef, K);
@@ -124,7 +126,7 @@ function sample(model::EpsilonSamplingModel;  𝒯::Int64 = 0, world::Function =
     end
 
     # main sampling loop -
-    for _ ∈ 1:𝒯
+    for t ∈ 1:𝒯
     
         # create a new parameter array -
         parameter_array = Array{Float64,2}(undef, K,2);
@@ -133,7 +135,7 @@ function sample(model::EpsilonSamplingModel;  𝒯::Int64 = 0, world::Function =
         for k ∈ 1:K
             
             # grab the distribution for action k -
-            d = action_distribution_dict[k];
+            d = action_distribution[k];
 
             # store the parameter array -
             αₖ, βₖ = params(d);
@@ -141,7 +143,7 @@ function sample(model::EpsilonSamplingModel;  𝒯::Int64 = 0, world::Function =
             parameter_array[k,2] = βₖ
 
             # store -
-            time_sample_results_dict_Ts[t] = parameter_array;
+            time_sample_results_dict[t] = parameter_array;
         end
 
 
@@ -153,7 +155,7 @@ function sample(model::EpsilonSamplingModel;  𝒯::Int64 = 0, world::Function =
             for k ∈ 1:K
 
                 # grab the distribution for action k -
-                d = action_distribution_dict[k];
+                d = action_distribution[k];
     
                 # generate a sample for this action -
                 θ̂_vector[k] = rand(d);
@@ -168,7 +170,7 @@ function sample(model::EpsilonSamplingModel;  𝒯::Int64 = 0, world::Function =
 
         # update the parameters -
         # first, get the old parameters -
-        old_d = action_distribution_dict[aₜ];
+        old_d = action_distribution[aₜ];
         α,β = params(old_d);
 
         # update the old values with the new values -
@@ -176,11 +178,11 @@ function sample(model::EpsilonSamplingModel;  𝒯::Int64 = 0, world::Function =
         β = β + (1-rₜ)
 
         # build new distribution -
-        action_distribution_dict[aₜ] = Beta(α, β);
+        action_distribution[aₜ] = Beta(α, β);
     end
 
     # return -
-    return action_distribution_dict
+    return time_sample_results_dict;
 end
 
 function world(action::Int64, time::Int64, data::Dict{String,DataFrame}, tickers::Array{String,1})::Int64
@@ -208,7 +210,8 @@ function world(action::Int64, time::Int64, data::Dict{String,DataFrame}, tickers
     return result_flag;
 end
 
-function sample(model::ThompsonSamplingModel, data::Dict{String,DataFrame}, tickers::Array{String,1}; 𝒯::Int64 = 0)::Dict{Int64, Array{Float64,2}}
+function sample(model::ThompsonSamplingModel, data::Dict{String,DataFrame}, tickers::Array{String,1}; 
+    𝒯::Int64 = 0)::Dict{Int64, Array{Float64,2}}
 
     # initialize -
     α = model.α
@@ -271,13 +274,14 @@ function sample(model::ThompsonSamplingModel, data::Dict{String,DataFrame}, tick
 end
 
 # main sampling method -
-function sample(model::ThompsonSamplingModel; 𝒯::Int64 = 0, world::Function = _null)::Array{Beta,1}
+function sample(model::ThompsonSamplingModel; 𝒯::Int64 = 0, world::Function = _null)::Dict{Int64, Array{Float64,2}}
 
     # initialize -
     α = model.α
     β = model.β
     K = model.K
     θ̂_vector = Array{Float64,1}(undef, K)
+    time_sample_results_dict = Dict{Int64, Array{Float64,2}}();
 
     # initialize collection of Beta distributions -
     action_distribution = Array{Beta,1}(undef, K);
@@ -287,6 +291,11 @@ function sample(model::ThompsonSamplingModel; 𝒯::Int64 = 0, world::Function =
 
     # main sampling loop -
     for t ∈ 1:𝒯
+
+        # create a new parameter array -
+        parameter_array = Array{Float64,2}(undef, K,2);
+        fill!(parameter_array,0.0);
+
         for k ∈ 1:K
 
             # grab the distribution for action k -
@@ -294,6 +303,14 @@ function sample(model::ThompsonSamplingModel; 𝒯::Int64 = 0, world::Function =
 
             # generate a sample for this action -
             θ̂_vector[k] = rand(d);
+
+            # store the parameter array -
+            αₖ, βₖ = params(d);
+            parameter_array[k,1] = αₖ
+            parameter_array[k,2] = βₖ
+
+            # store -
+            time_sample_results_dict[t] = parameter_array;
         end
 
         # ok: let's choose an action -
@@ -316,7 +333,7 @@ function sample(model::ThompsonSamplingModel; 𝒯::Int64 = 0, world::Function =
     end
     
     # return -
-    return action_distribution;
+    return time_sample_results_dict;
 end 
 
 function clean(data::Dict{String, DataFrame})::Dict{String, DataFrame}
