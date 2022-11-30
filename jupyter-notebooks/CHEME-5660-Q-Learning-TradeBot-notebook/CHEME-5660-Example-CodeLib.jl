@@ -16,6 +16,11 @@ mutable struct TradeBotModel
     # data -
     ticker::String
     policy::Array{Int64,1}
+    
+    # data for the state estimation -
+    Sₒ::Float64
+    σ̂::Float64
+    δ::Float64
     W::Array{Float64,2}
 
     # constructor -
@@ -299,13 +304,17 @@ function state(price::Float64, W::Array{Float64,2})::Int64
 end
 
 function build(model::Type{TradeBotModel}; 
-    ticker::String="XYZ", policy::Array{Int64,1} = [1,1,1,1], W::Array{Float64,2} = zeros(1,1))::TradeBotModel
+    ticker::String="XYZ", policy::Array{Int64,1} = [1,1,1,1], W::Array{Float64,2} = zeros(1,1), 
+    Sₒ::Float64 = 100.0, σ = 1.0, δ::Float64 = 1.0)::TradeBotModel
 
     # build an empty model instance -
     trade_bot_model = TradeBotModel();
     trade_bot_model.policy = policy;
     trade_bot_model.ticker = ticker;
     trade_bot_model.W = W;
+    trade_bot_model.Sₒ = Sₒ
+    trade_bot_model.σ̂ = σ
+    trade_bot_model.δ = δ
 
     # return -
     return trade_bot_model;
