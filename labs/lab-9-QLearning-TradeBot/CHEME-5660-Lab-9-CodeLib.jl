@@ -28,7 +28,6 @@ mutable struct TradeBotModel
 end
 
 
-
 # define a lookahead function -
 lookahead(model::QLearningModel, s, a) = model.Q[s,a];
 
@@ -74,6 +73,20 @@ function price(data::DataFrame,index::Int64)::Float64
     d = Uniform(0,1);
     θ = rand(d);
     return H*θ + (1-θ)*L
+end
+
+function compute_cash_value(data::DataFrame, price::Float64)::Float64
+
+    # what is the size of this data?
+    number_of_rows = nrow(data);
+    new_cash_value = 0.0;
+    number_of_shares = data[number_of_rows,:size]; # this is our current position size -
+
+    # ok, compute the liquidate value at price p -
+    liquidation_value = liquidate(data, price);
+
+    # return -
+    return number_of_shares*liquidation_value;
 end
 
 function partition(data::Dict{String, DataFrame}; fraction::Float64)::Tuple{Dict{String, DataFrame}, Dict{String, DataFrame}}
