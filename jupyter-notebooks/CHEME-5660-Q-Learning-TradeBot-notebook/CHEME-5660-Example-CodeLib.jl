@@ -11,6 +11,17 @@ mutable struct QLearningModel
     QLearningModel() = new();
 end
 
+mutable struct TradeBotModel
+
+    # data -
+    ticker::String
+    policy::Array{Int64,1}
+    W::Array{Float64,2}
+
+    # constructor -
+    TradeBotModel() = new();
+end
+
 
 
 # define a lookahead function -
@@ -83,6 +94,51 @@ function partition(data::Dict{String, DataFrame}; fraction::Float64)::Tuple{Dict
     end
 
     return (training, prediction)
+end
+
+function compute_average_cost(account::DataFrame)::Float64
+
+    # initialize -
+    number_of_transactions = nrow(account)
+    tmp_array = Array{Float64,2}(undef, number_of_transactions, 2)
+
+    # compute the total number of shares that we have -
+    total_number_of_shares = 0.0;
+    for i ∈ 1:number_of_transactions
+        
+        # get the data -
+        action_flag = account[i,:action];
+        nᵢ = account[i,:Δ]; 
+        price = account[i,:price];
+        
+        # grab the volume and price data for later -
+        tmp_array[i,1] = nᵢ;
+        tmp_array[i,2] = price;
+    
+        # sense -
+        sense_flag = 1.0
+        if (action_flag == 2)
+            sense = -1.0
+        elseif (action_flag == 3)
+            sense = 0.0 
+        end
+
+        # compute the total -
+        total_number_of_shares = total_number_of_shares + sense_flag*nᵢ; 
+    end
+
+    # update the volume to fraction -
+    for i ∈ 1:number_of_transactions
+        raw_volume = tmp_array[i,1];
+        tmp_array[i,1] = (raw_volume/total_number_of_shares);
+    end
+
+    # compute the vwap -
+    ω = tmp_array[:,1];
+    p = tmp_array[:,2];
+
+    # return -
+    return sum(ω.*p);
 end
 
 function vwap(ledger::DataFrame)::Float64
@@ -209,4 +265,17 @@ function state(price::Float64, W::Array{Float64,2})::Int64
 
     # return the class -
     return argmax(softmax(test_class))
+end
+
+function build(model::Type{TradeBotModel}; 
+    ticker::String="XYZ", policy::Array{Int64,1} = [1,1,1,1], W::Array{Float64,2} = zeros(1,1))::TradeBotModel
+
+    # build an empty model instance -
+    trade_bot_model = TradeBotModel();
+    trade_bot_model.policy = policy;
+    trade_bot_model.ticker = ticker;
+    trade_bot_model.W = W;
+
+    # return -
+    return trade_bot_model;
 end
