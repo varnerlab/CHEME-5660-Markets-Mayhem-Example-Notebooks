@@ -96,7 +96,7 @@ function partition(data::Dict{String, DataFrame}; fraction::Float64)::Tuple{Dict
     return (training, prediction)
 end
 
-function compute_average_cost(account::DataFrame)::Float64
+function compute_average_cost_old(account::DataFrame)::Float64
 
     # initialize -
     number_of_transactions = nrow(account)
@@ -141,6 +141,36 @@ function compute_average_cost(account::DataFrame)::Float64
     return sum(ω.*p);
 end
 
+function compute_average_cost(account::DataFrame)::Float64
+    
+    tmp = account;
+    cost_array = Array{Float64,1}()
+    for i ∈ 1:nrow(tmp)
+    
+        aᵢ = tmp[i,:action];
+        
+        if (aᵢ == 1)
+            Δ = tmp[i,:Δ];
+            p = tmp[i,:price];
+            cost = Δ*p;
+            push!(cost_array, cost);
+        elseif (aᵢ == 2)
+            Δ = tmp[i,:Δ];
+            p = tmp[i,:price];
+            cost = -Δ*p;
+            push!(cost_array, cost);
+        elseif (aᵢ == 3)
+            push!(cost_array, 0.0);
+        end
+    end
+
+    # compute the total cost -
+    total_cost = sum(cost_array)
+    number_of_shares = tmp[end, :size];
+    avg_cost = (total_cost)/number_of_shares
+    return avg_cost;
+end
+
 function vwap(ledger::DataFrame)::Float64
 
     # initialize -
@@ -153,7 +183,7 @@ function vwap(ledger::DataFrame)::Float64
         
         # get the data -
         action_flag = ledger[i,:action];
-        nᵢ = ledger[i,:n]; 
+        nᵢ = ledger[i,:Δ]; 
         price = ledger[i,:price];
         
         # grab the volume and price data for later -
@@ -211,8 +241,9 @@ end
 function liquidate(ledger::DataFrame, p::Float64)::Float64
 
     # compute the vwap for this portfolio -
-    vwap_value = vwap(ledger);
-    return (p - vwap_value)
+    #vwap_value = vwap(ledger);
+    avgcost = compute_average_cost(ledger)
+    return (p - avgcost)
 end
 
 function compute_position_size(ledger::DataFrame)::Int64
@@ -223,7 +254,7 @@ function compute_position_size(ledger::DataFrame)::Int64
         
         # get action, and the size for this ledger entry -
         aᵢ = ledger[i,:action]
-        nᵢ = ledger[i,:n];
+        nᵢ = ledger[i,:Δ];
 
         if (aᵢ == 1)
             current_position_size = current_position_size + nᵢ
