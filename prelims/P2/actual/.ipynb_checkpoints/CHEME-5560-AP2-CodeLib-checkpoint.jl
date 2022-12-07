@@ -143,38 +143,3 @@ function P(samples::Array{Float64,1}, value::Float64)::Float64
     # return -
     return (length(idx_vector)/N);
 end
-
-function E(model::GeometricBrownianMotionModel)::Array{Float64,2}
-
-    # initialize -
-    μ = model.μ
-    T₁ = model.T₁
-    T₂ = model.T₂
-    h = model.h
-    Xₒ = model.Xₒ
-
-    # setup the time range -
-    time_array = range(T₁,stop=T₂, step = h) |> collect
-    Nₜ = length(time_array)
-
-    # expectation -
-    expectation_array = zeros(Nₜ, 2)
-
-    # main loop -
-    for i ∈ 1:Nₜ
-
-        # get the time value -
-        t = (time_array[i] - time_array[1])
-
-        # compute the expectation -
-        value = Xₒ*exp(μ*t)
-
-        # capture -
-        expectation_array[i,1] = t+time_array[1]
-        expectation_array[i,2] = value
-    end
-   
-
-    # return -
-    return expectation_array
-end
